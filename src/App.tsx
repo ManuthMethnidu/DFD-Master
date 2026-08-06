@@ -4,18 +4,21 @@
  */
 
 import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import ReactFlow, { addEdge, useNodesState, useEdgesState, Controls, Background, MarkerType } from 'reactflow';
+import ReactFlow, { addEdge, useNodesState, useEdgesState, Controls, Background, MarkerType, ConnectionMode } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { SCENARIOS, Scenario } from './scenarios';
-import { EntityNode, ProcessNode, DataStoreNode, CustomEdge } from './CustomNodes';
-import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy } from 'lucide-react';
+import { EntityNode, ProcessNode, DataStoreNode, NoteNode, CustomEdge } from './CustomNodes';
+import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy, StickyNote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
+
+import { ThemeToggle } from './ThemeToggle';
 
 const nodeTypes = {
   entity: EntityNode,
   process: ProcessNode,
   dataStore: DataStoreNode,
+  note: NoteNode,
 };
 const edgeTypes = {
   custom: CustomEdge,
@@ -86,8 +89,9 @@ export default function DFDSimulator({ user }: { user: any }) {
   const onConnect = useCallback((params: any) => {
     setEdges((eds) => addEdge({ 
       ...params, 
-      type: 'custom', 
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#1e3a8a' }, 
+      type: 'custom',
+      animated: true,
+      markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--color-border)' }, 
       data: { label: '' } 
     }, eds));
   }, [setEdges]);
@@ -107,11 +111,13 @@ export default function DFDSimulator({ user }: { user: any }) {
         x: event.clientX,
         y: event.clientY,
       });
+      const isNote = type === 'note';
       const newNode = {
         id: getId(),
         type,
         position,
         data: { label: '' },
+        style: isNote ? { width: 160, height: 160 } : undefined,
       };
       setNodes((nds) => nds.concat(newNode));
     },
@@ -131,6 +137,8 @@ export default function DFDSimulator({ user }: { user: any }) {
     }));
 
     const updatedNodes = nodes.map(node => {
+      if (node.type === 'note') return node;
+
       const label = (node.data.label || '').toLowerCase().trim();
       const idealMatch = idealNodesMap.find(n => n.lowerLabel === label);
       let isError = false;
@@ -257,62 +265,63 @@ export default function DFDSimulator({ user }: { user: any }) {
   };
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#FAF9F6] text-[#1A1A1A] font-sans overflow-hidden border border-gray-200">
-       <header className="flex items-center justify-between px-6 py-2 border-b-2 border-black bg-white z-10">
+    <div className="h-screen w-screen flex flex-col bg-canvas text-ink font-sans overflow-hidden border border-line">
+       <header className="flex items-center justify-between px-6 py-2 border-b-2 border-line bg-surface z-10">
           <div className="flex items-baseline gap-3">
              <h1 className="text-2xl font-serif font-black italic leading-none">DFD Master.</h1>
-             <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-500">A/L ICT SYLLABUS ({SCENARIOS.length} QUESTIONS)</span>
+             <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted">A/L ICT SYLLABUS ({SCENARIOS.length} QUESTIONS)</span>
           </div>
 
           <div className="flex items-center gap-2">
-             <button onClick={prevScenario} className="p-2 border-2 border-black bg-white hover:bg-gray-100 transition-colors" title="Previous Question">
+             <button onClick={prevScenario} className="p-2 border-2 border-line bg-surface hover:bg-canvas transition-colors" title="Previous Question">
                 <ChevronLeft size={16} />
              </button>
-             <button onClick={() => setShowQuestionModal(true)} className="px-3 py-1.5 border-2 border-black bg-white text-black text-xs font-bold uppercase tracking-wider hover:bg-gray-100 flex items-center gap-2">
+             <button onClick={() => setShowQuestionModal(true)} className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-wider hover:bg-canvas flex items-center gap-2">
                 <Search size={14} />
                 <span>Q {scenarioIndex + 1} of {SCENARIOS.length}</span>
              </button>
-             <button onClick={nextScenario} className="p-2 border-2 border-black bg-white hover:bg-gray-100 transition-colors" title="Next Question">
+             <button onClick={nextScenario} className="p-2 border-2 border-line bg-surface hover:bg-canvas transition-colors" title="Next Question">
                 <ChevronRight size={16} />
              </button>
           </div>
 
-          <div className="flex gap-2">
-             <Link to="/leaderboard" className="px-3 py-1.5 border-2 border-black bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors flex items-center gap-2">
+          <div className="flex gap-2 items-center">
+             <Link to="/leaderboard" className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-widest hover:bg-canvas transition-colors flex items-center gap-2">
                 <Trophy size={14} /> Leaders
              </Link>
-             <Link to="/profile" className="px-3 py-1.5 border-2 border-black bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors flex items-center gap-2">
+             <Link to="/profile" className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-widest hover:bg-canvas transition-colors flex items-center gap-2">
                 <User size={14} /> Profile
              </Link>
-             <div className="w-px bg-gray-300 mx-1"></div>
-             <button onClick={randomScenario} className="px-3 py-1.5 border-2 border-transparent text-black text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">
+             <div className="w-px bg-muted mx-1 h-4"></div>
+             <button onClick={randomScenario} className="px-3 py-1.5 border-2 border-transparent text-ink text-xs font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
                 Random Q
              </button>
-             <button onClick={() => setShowCheatSheet(true)} className="px-3 py-1.5 border-2 border-black bg-white text-black text-xs font-bold uppercase tracking-widest hover:bg-gray-100 transition-colors">
+             <button onClick={() => setShowCheatSheet(true)} className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
                 Rules
              </button>
+             <ThemeToggle />
           </div>
        </header>
 
        <div className="flex-1 flex overflow-hidden">
-          <aside className="w-[340px] bg-white border-r-2 border-black flex flex-col z-10 overflow-hidden shrink-0">
+          <aside className="w-[340px] bg-surface border-r-2 border-line flex flex-col z-10 overflow-hidden shrink-0">
              <div className="p-5 border-b border-gray-100">
                 <div className="flex items-center justify-between mb-2">
                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{scenario.level}</span>
-                   <span className="text-[9px] font-bold bg-black text-white px-2 py-0.5 rounded-none uppercase">{scenario.category}</span>
+                   <span className="text-[9px] font-bold bg-accent text-on-accent px-2 py-0.5 rounded-none uppercase">{scenario.category}</span>
                 </div>
                 <h3 className="text-lg font-bold font-serif mb-2 leading-tight">{scenario.title}</h3>
-                <p className="text-xs font-serif leading-relaxed text-gray-700 italic bg-gray-50 p-3 border-l-2 border-black">
+                <p className="text-xs font-serif leading-relaxed text-gray-700 italic bg-gray-50 p-3 border-l-2 border-line">
                    "{scenario.description}"
                 </p>
              </div>
              
              <div className="p-5 flex-1 flex flex-col gap-4 overflow-y-auto">
-                <div className="border border-black p-3 bg-white">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-2">Expected Elements</h4>
+                <div className="border border-line p-3 bg-surface">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-2">Expected Elements</h4>
                   <div className="flex flex-wrap gap-1">
                     {scenario.ideal.nodes.map(n => (
-                      <span key={n.id} className={`text-[10px] font-mono px-2 py-0.5 border border-black ${n.type === 'entity' ? 'bg-amber-50' : n.type === 'process' ? 'bg-sky-50' : 'bg-emerald-50'}`}>
+                      <span key={n.id} className={`text-[10px] font-mono px-2 py-0.5 border border-line ${n.type === 'entity' ? 'bg-amber-50' : n.type === 'process' ? 'bg-sky-50' : 'bg-emerald-50'}`}>
                         {n.label} ({n.type === 'dataStore' ? 'Store' : n.type})
                       </span>
                     ))}
@@ -320,11 +329,11 @@ export default function DFDSimulator({ user }: { user: any }) {
                 </div>
 
                 {!evalState.evaluating ? (
-                   <button onClick={evaluateDiagram} className="w-full py-3.5 mt-auto bg-black text-white font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                   <button onClick={evaluateDiagram} className="w-full py-3.5 mt-auto bg-accent text-on-accent font-bold uppercase tracking-widest text-xs hover:opacity-90 transition-colors shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]">
                       Submit Diagram
                    </button>
                 ) : (
-                   <button onClick={() => setEvalState({ evaluating: false, score: 0, feedback: [] })} className="w-full py-3.5 mt-auto border-2 border-black bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-100 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                   <button onClick={() => setEvalState({ evaluating: false, score: 0, feedback: [] })} className="w-full py-3.5 mt-auto border-2 border-line bg-surface text-ink font-bold uppercase tracking-widest text-xs hover:bg-canvas transition-colors shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]">
                       Edit Diagram
                    </button>
                 )}
@@ -333,7 +342,7 @@ export default function DFDSimulator({ user }: { user: any }) {
           
           <main className="flex-1 relative flex bg-[#F2F2F0] bg-[radial-gradient(#d1d1d1_1px,transparent_1px)] [background-size:20px_20px]" ref={reactFlowWrapper}>
              <div className="absolute top-4 left-4 z-10 pointer-events-none flex gap-2">
-               <h3 className="text-xs font-bold font-mono bg-white px-2 py-1 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] text-black">
+               <h3 className="text-xs font-bold font-mono bg-surface px-2 py-1 border border-line shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] text-ink">
                  {scenario.level.toUpperCase()}
                </h3>
              </div>
@@ -348,44 +357,50 @@ export default function DFDSimulator({ user }: { user: any }) {
                onDragOver={onDragOver}
                nodeTypes={nodeTypes}
                edgeTypes={edgeTypes}
+               connectionMode={ConnectionMode.Loose}
                fitView
              >
                <Controls />
              </ReactFlow>
-             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white border-2 border-black p-2 flex gap-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] z-10">
+             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-surface border-2 border-line p-2 flex gap-4 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-10">
                <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'entity'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
-                 <div className="w-8 h-8 border border-black bg-gray-100"></div>
+                 <div className="w-10 h-6 border border-line rounded-[50%] bg-surface"></div>
                  <span className="text-[8px] font-bold tracking-widest uppercase">Entity</span>
                </div>
-               <div className="w-[1px] bg-black h-10 self-center"></div>
+               <div className="w-[1px] bg-accent h-10 self-center"></div>
                <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'process'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
-                 <div className="w-8 h-8 rounded-full border border-black bg-gray-100"></div>
+                 <div className="w-10 h-8 rounded-xl border border-line bg-surface"></div>
                  <span className="text-[8px] font-bold tracking-widest uppercase">Process</span>
                </div>
-               <div className="w-[1px] bg-black h-10 self-center"></div>
+               <div className="w-[1px] bg-accent h-10 self-center"></div>
                <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'dataStore'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
-                 <div className="w-10 h-8 border-y border-l border-black bg-gray-100"></div>
+                 <div className="w-10 h-8 border-y border-l border-line bg-surface"></div>
                  <span className="text-[8px] font-bold tracking-widest uppercase">Store</span>
+               </div>
+               <div className="w-[1px] bg-accent h-10 self-center"></div>
+               <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'note'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+                 <div className="w-8 h-8 bg-yellow-200 border border-yellow-400 rotate-[-2deg]"></div>
+                 <span className="text-[8px] font-bold tracking-widest uppercase">Note</span>
                </div>
              </div>
           </main>
           
-          <aside className="w-[280px] bg-white text-black p-5 flex flex-col z-10 border-l-2 border-black overflow-hidden shrink-0">
+          <aside className="w-[280px] bg-surface text-ink p-5 flex flex-col z-10 border-l-2 border-line overflow-hidden shrink-0">
              <div className="mb-6">
-               <h2 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-4">Evaluation Result</h2>
+               <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-4">Evaluation Result</h2>
                <div className="flex items-baseline gap-2">
                  <span className="text-6xl font-serif italic font-black">{evalState.evaluating ? evalState.score : '--'}</span>
                  <span className="text-xl text-gray-400">/ 100</span>
                </div>
                <div className="mt-3 h-1.5 w-full bg-gray-200">
-                 <div className="h-full bg-black transition-all duration-1000 ease-out" style={{ width: `${evalState.evaluating ? evalState.score : 0}%` }}></div>
+                 <div className="h-full bg-accent transition-all duration-1000 ease-out" style={{ width: `${evalState.evaluating ? evalState.score : 0}%` }}></div>
                </div>
              </div>
 
              <div className="flex-1 overflow-y-auto">
-               <h3 className="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-3">Critique</h3>
+               <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-3">Critique</h3>
                {!evalState.evaluating ? (
-                  <p className="text-xs font-mono text-gray-500">Submit your diagram to view the evaluation results based on standard syllabus rules.</p>
+                  <p className="text-xs font-mono text-muted">Submit your diagram to view the evaluation results based on standard syllabus rules.</p>
                ) : (
                   <ul className="space-y-3 font-mono text-[11px] leading-tight">
                     {evalState.feedback.length > 0 ? (
@@ -409,20 +424,20 @@ export default function DFDSimulator({ user }: { user: any }) {
 
        {/* Question Selector Modal (200+ Scenarios Browser) */}
        {showQuestionModal && (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-6 backdrop-blur-xs">
-             <div className="bg-white border-2 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden">
-                <div className="p-5 border-b-2 border-black flex justify-between items-center bg-gray-50">
+          <div className="fixed inset-0 bg-accent/60 flex items-center justify-center z-50 p-6 backdrop-blur-xs">
+             <div className="bg-surface border-2 border-line shadow-[12px_12px_0px_0px_rgba(var(--shadow-rgb),1)] max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden">
+                <div className="p-5 border-b-2 border-line flex justify-between items-center bg-gray-50">
                    <div>
                      <h2 className="text-2xl font-serif font-black italic">Question Bank</h2>
-                     <p className="text-xs font-mono text-gray-500">Browse and search {SCENARIOS.length} Sri Lankan A/L ICT DFD Scenarios</p>
+                     <p className="text-xs font-mono text-muted">Browse and search {SCENARIOS.length} Sri Lankan A/L ICT DFD Scenarios</p>
                    </div>
-                   <button onClick={() => setShowQuestionModal(false)} className="p-2 hover:bg-gray-200 border border-black transition-colors">
+                   <button onClick={() => setShowQuestionModal(false)} className="p-2 hover:bg-gray-200 border border-line transition-colors">
                       <X size={20} />
                    </button>
                 </div>
 
                 {/* Filters */}
-                <div className="p-4 border-b border-gray-200 bg-white flex flex-col gap-3">
+                <div className="p-4 border-b border-line bg-surface flex flex-col gap-3">
                    <div className="flex gap-3">
                      <div className="relative flex-1">
                         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -431,13 +446,13 @@ export default function DFDSimulator({ user }: { user: any }) {
                           placeholder="Search 200+ questions by keyword (e.g., Bookland, Hospital, Admission, ATM, Library)..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-full pl-9 pr-4 py-2 border border-black text-xs font-mono outline-none focus:ring-2 focus:ring-black"
+                          className="w-full pl-9 pr-4 py-2 border border-line text-xs font-mono outline-none focus:ring-2 focus:ring-black"
                         />
                      </div>
                      <select
                        value={selectedLevelFilter}
                        onChange={(e) => setSelectedLevelFilter(e.target.value)}
-                       className="px-3 py-2 border border-black text-xs font-mono bg-white outline-none cursor-pointer"
+                       className="px-3 py-2 border border-line text-xs font-mono bg-surface outline-none cursor-pointer"
                      >
                        <option value="All">All Levels</option>
                        <option value="Context Diagram">Context Diagrams</option>
@@ -451,7 +466,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                         <button
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
-                          className={`text-[10px] font-mono px-3 py-1 border border-black whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-black text-white font-bold' : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}`}
+                          className={`text-[10px] font-mono px-3 py-1 border border-line whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-accent text-on-accent font-bold' : 'bg-surface hover:bg-gray-200 text-gray-800'}`}
                         >
                           {cat}
                         </button>
@@ -469,33 +484,33 @@ export default function DFDSimulator({ user }: { user: any }) {
                           <div
                             key={s.id}
                             onClick={() => selectScenario(originalIndex)}
-                            className={`p-4 border-2 border-black cursor-pointer transition-all flex flex-col justify-between bg-white hover:translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${isCurrent ? 'ring-2 ring-black bg-amber-50' : ''}`}
+                            className={`p-4 border-2 border-line cursor-pointer transition-all flex flex-col justify-between bg-surface hover:translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${isCurrent ? 'ring-2 ring-black bg-amber-50' : ''}`}
                           >
                             <div>
                                <div className="flex items-center justify-between mb-1.5">
-                                  <span className="text-[9px] font-bold tracking-widest text-gray-500 uppercase">Q #{s.id} • {s.level}</span>
-                                  <span className="text-[9px] font-bold bg-black text-white px-2 py-0.5">{s.category}</span>
+                                  <span className="text-[9px] font-bold tracking-widest text-muted uppercase">Q #{s.id} • {s.level}</span>
+                                  <span className="text-[9px] font-bold bg-accent text-on-accent px-2 py-0.5">{s.category}</span>
                                </div>
                                <h4 className="text-sm font-bold font-serif mb-1 leading-snug">{s.title}</h4>
                                <p className="text-xs text-gray-600 line-clamp-2 font-serif italic mb-2">"{s.description}"</p>
                             </div>
-                            <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[10px] font-mono text-gray-500">
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[10px] font-mono text-muted">
                                <span>Nodes: {s.ideal.nodes.length} | Flows: {s.ideal.edges.length}</span>
-                               <span className="font-bold text-black uppercase">Start Practice →</span>
+                               <span className="font-bold text-ink uppercase">Start Practice →</span>
                             </div>
                           </div>
                         );
                       })
                    ) : (
-                      <div className="col-span-2 text-center py-12 text-gray-500 font-mono text-xs">
+                      <div className="col-span-2 text-center py-12 text-muted font-mono text-xs">
                          No scenarios matching "{searchQuery}". Try a different search term or category.
                       </div>
                    )}
                 </div>
 
-                <div className="p-3 border-t border-black bg-white flex justify-between items-center text-xs font-mono text-gray-500">
+                <div className="p-3 border-t border-line bg-surface flex justify-between items-center text-xs font-mono text-muted">
                    <span>Showing {filteredScenarios.length} of {SCENARIOS.length} Scenarios</span>
-                   <button onClick={() => setShowQuestionModal(false)} className="px-4 py-1.5 bg-black text-white font-bold text-xs uppercase tracking-widest">
+                   <button onClick={() => setShowQuestionModal(false)} className="px-4 py-1.5 bg-accent text-on-accent font-bold text-xs uppercase tracking-widest">
                       Close
                    </button>
                 </div>
@@ -504,9 +519,9 @@ export default function DFDSimulator({ user }: { user: any }) {
        )}
 
        {showCheatSheet && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-             <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl w-full p-8 flex flex-col">
-                <h2 className="text-2xl font-serif font-black italic mb-6 border-b-2 border-black pb-4">DFD Syllabus Rules</h2>
+          <div className="fixed inset-0 bg-accent/50 flex items-center justify-center z-50 p-4">
+             <div className="bg-surface border-2 border-line shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] max-w-2xl w-full p-8 flex flex-col">
+                <h2 className="text-2xl font-serif font-black italic mb-6 border-b-2 border-line pb-4">DFD Syllabus Rules</h2>
                 <ul className="space-y-4 text-sm font-mono text-gray-800">
                    <li className="flex gap-3">
                      <span className="font-bold">01.</span>
@@ -534,7 +549,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                    </li>
                 </ul>
                 <div className="mt-8 flex justify-end">
-                   <button onClick={() => setShowCheatSheet(false)} className="px-6 py-3 bg-black text-white font-bold uppercase tracking-widest text-xs hover:bg-gray-800 transition-colors">
+                   <button onClick={() => setShowCheatSheet(false)} className="px-6 py-3 bg-accent text-on-accent font-bold uppercase tracking-widest text-xs hover:opacity-90 transition-colors">
                       Acknowledge
                    </button>
                 </div>

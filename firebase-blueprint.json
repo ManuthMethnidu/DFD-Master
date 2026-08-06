@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing stats and badges.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "totalScore": { "type": "number" },
+        "badges": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["uid", "displayName", "email", "totalScore", "badges", "createdAt", "updatedAt"]
+    },
+    "ScenarioScore": {
+      "title": "ScenarioScore",
+      "description": "User's high score for a specific scenario.",
+      "type": "object",
+      "properties": {
+        "scenarioId": { "type": "number" },
+        "score": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["scenarioId", "score", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles and global stats."
+    },
+    "users/{userId}/scores/{scoreId}": {
+      "schema": { "$ref": "#/entities/ScenarioScore" },
+      "description": "High scores per scenario."
+    }
+  }
+}

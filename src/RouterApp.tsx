@@ -61,7 +61,7 @@ function Login() {
         <p className="text-xs font-mono text-muted uppercase tracking-widest mb-8">Authentication Required</p>
         
         {errorMsg && (
-          <div className="mb-6 p-4 border-2 border-red-500 bg-red-50 text-red-900 text-xs font-mono text-center">
+          <div className="mb-6 p-4 border-2 border-ink bg-canvas text-ink border-dashed text-xs font-mono text-center">
             {errorMsg}
           </div>
         )}
@@ -105,7 +105,7 @@ function Profile({ user }: { user: any }) {
           <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:bg-accent hover:text-on-accent border-2 border-transparent hover:border-line px-3 py-1.5 transition-colors">
             <ArrowLeft size={16} /> Back to Simulator
           </Link>
-          <button onClick={handleLogout} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-red-600 hover:bg-red-50 hover:text-red-900 px-3 py-1.5 transition-colors border-2 border-transparent hover:border-red-600">
+          <button onClick={handleLogout} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ink hover:bg-ink hover:text-canvas px-3 py-1.5 transition-colors border-2 border-transparent hover:border-ink">
             <LogOut size={16} /> Sign Out
           </button>
         </div>
@@ -172,11 +172,11 @@ function Leaderboard() {
   };
 
   const getRankColor = (score: number) => {
-    if (score >= 1000) return 'text-amber-500 border-amber-500 bg-amber-50 dark:bg-amber-900/30';
-    if (score >= 500) return 'text-slate-500 border-slate-500 bg-slate-50 dark:bg-slate-800/50';
-    if (score >= 250) return 'text-amber-700 border-amber-700 bg-orange-50 dark:bg-orange-900/30';
-    if (score >= 100) return 'text-emerald-500 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30';
-    return 'text-sky-500 border-sky-500 bg-sky-50 dark:bg-sky-900/30';
+    if (score >= 1000) return 'text-ink border-ink bg-canvas font-black';
+    if (score >= 500) return 'text-ink border-ink bg-surface border-dashed';
+    if (score >= 250) return 'text-ink border-ink bg-canvas';
+    if (score >= 100) return 'text-ink border-ink bg-surface border-dotted';
+    return 'text-ink border-ink bg-surface';
   };
 
   return (
@@ -204,7 +204,7 @@ function Leaderboard() {
           <div className="space-y-4">
             {leaders.length > 0 ? (
               leaders.map((leader, idx) => (
-                <div key={leader.uid} className={`flex items-center justify-between p-4 md:p-6 border-2 border-line ${idx === 0 ? 'bg-amber-100 dark:bg-amber-900 shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] -translate-y-1 -translate-x-1' : 'bg-canvas'}`}>
+                <div key={leader.uid} className={`flex items-center justify-between p-4 md:p-6 border-2 border-line ${idx === 0 ? 'bg-surface border-4 font-bold shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] -translate-y-1 -translate-x-1' : 'bg-canvas'}`}>
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <div className="flex items-center gap-4">
                         <span className="text-2xl md:text-3xl font-serif font-black italic text-muted w-8">#{idx + 1}</span>
@@ -269,13 +269,13 @@ function Leaderboard() {
                 <div className="space-y-4 font-mono text-sm text-ink">
                   <p><strong>Base Score:</strong> 100 points per scenario.</p>
                   <ul className="space-y-2 list-disc list-inside text-muted">
-                    <li><span className="text-emerald-600 font-bold">Correct Matches:</span> +Points</li>
-                    <li><span className="text-red-500 font-bold">Missing Element:</span> -20 pts each</li>
-                    <li><span className="text-red-500 font-bold">Wrong Connection:</span> -10 pts each</li>
-                    <li><span className="text-red-500 font-bold">Wrong Direction:</span> -5 pts each</li>
-                    <li><span className="text-red-500 font-bold">Revealing Hints:</span> -15 pts flat penalty</li>
+                    <li><span className="text-ink font-bold">Correct Matches:</span> +Points</li>
+                    <li><span className="text-ink font-bold">Missing Element:</span> -20 pts each</li>
+                    <li><span className="text-ink font-bold">Wrong Connection:</span> -10 pts each</li>
+                    <li><span className="text-ink font-bold">Wrong Direction:</span> -5 pts each</li>
+                    <li><span className="text-ink font-bold">Revealing Hints:</span> -15 pts flat penalty</li>
                   </ul>
-                  <div className="p-3 bg-amber-50 dark:bg-amber-900/30 border-2 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-xs mt-4">
+                  <div className="p-3 bg-canvas border-2 border-ink border-dashed text-ink text-xs mt-4">
                     <strong>Note:</strong> Architecture rules (e.g. Entity to Entity direct links) will cause immediate failure of the evaluation step for that element.
                   </div>
                 </div>

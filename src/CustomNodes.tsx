@@ -10,7 +10,7 @@ const DeleteButton = ({ id }: { id: string }) => {
         setNodes(nds => nds.filter(n => n.id !== id));
         setEdges(eds => eds.filter(e => e.source !== id && e.target !== id));
       }}
-      className="absolute -top-3 -right-3 w-6 h-6 bg-surface border-2 border-line rounded-full flex items-center justify-center hover:bg-red-100 hover:text-red-600 z-50 shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]"
+      className="absolute -top-3 -right-3 w-6 h-6 bg-surface border-2 border-line rounded-full flex items-center justify-center hover:bg-ink hover:text-canvas z-50 shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]"
     >
       <X size={12} strokeWidth={3} />
     </button>
@@ -31,7 +31,7 @@ export const EntityNode = ({ data, id, selected }: any) => {
   const [isDuplicate, setIsDuplicate] = useState(data?.isDuplicate || false);
   const { setNodes } = useReactFlow();
   useEffect(() => { setVal(data?.label || ''); setIsDuplicate(data?.isDuplicate || false); }, [data?.label, data?.isDuplicate]);
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-ink border-dashed border-4 bg-canvas text-ink' : data.correct ? 'border-ink border-solid border-4 bg-surface text-ink' : 'border-line bg-surface text-ink';
   return (
     <div className={`border-2 rounded-[50%] w-32 h-24 flex flex-col items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
        {selected && <DeleteButton id={id} />}
@@ -54,7 +54,7 @@ export const ContextProcessNode = ({ data, id, selected }: any) => {
   const [val, setVal] = useState(data?.label || '');
   const { setNodes } = useReactFlow();
   useEffect(() => { setVal(data?.label || ''); }, [data?.label]);
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-ink border-dashed border-4 bg-canvas text-ink' : data.correct ? 'border-ink border-solid border-4 bg-surface text-ink' : 'border-line bg-surface text-ink';
   return (
     <div className={`border-2 w-32 h-24 flex items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
        {selected && <DeleteButton id={id} />}
@@ -77,7 +77,7 @@ export const DetailedProcessNode = ({ data, id, selected }: any) => {
     setDesc(data?.description || ''); 
   }, [data?.label, data?.processId, data?.description]);
   
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-ink border-dashed border-4 bg-canvas text-ink' : data.correct ? 'border-ink border-solid border-4 bg-surface text-ink' : 'border-line bg-surface text-ink';
   return (
     <div className={`border-2 w-48 h-32 flex flex-col relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
        {selected && <DeleteButton id={id} />}
@@ -107,7 +107,7 @@ export const DataStoreNode = ({ data, id, selected }: any) => {
   const [storeId, setStoreId] = useState(data?.storeId || '');
   const { setNodes } = useReactFlow();
   useEffect(() => { setVal(data?.label || ''); setStoreId(data?.storeId || ''); }, [data?.label, data?.storeId]);
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-ink border-dashed border-4 bg-canvas text-ink' : data.correct ? 'border-ink border-solid border-4 bg-surface text-ink' : 'border-line bg-surface text-ink';
   return (
     <div className={`border-y-2 border-l-2 border-r-0 w-44 h-16 flex items-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
        {selected && <DeleteButton id={id} />}
@@ -180,7 +180,7 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
   const targetNode = getNode(target);
   const isEntityToEntity = sourceNode?.type === 'entity' && targetNode?.type === 'entity';
   
-  const strokeColor = data?.error ? '#ef4444' : data?.correct ? '#22c55e' : (selected ? '#3b82f6' : 'var(--color-border)');
+  const strokeColor = 'var(--color-border)';
   const strokeDasharray = isEntityToEntity ? '6 6' : 'none';
 
   return (
@@ -200,7 +200,7 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
              {selected && (
                <button 
                  onClick={() => setEdges(eds => eds.filter(e => e.id !== id))}
-                 className="absolute -top-3 -right-3 w-5 h-5 bg-surface border border-line rounded-full flex items-center justify-center hover:bg-red-100 text-red-600 z-50 shadow-[1px_1px_0px_0px_rgba(var(--shadow-rgb),1)]"
+                 className="absolute -top-3 -right-3 w-5 h-5 bg-surface border border-line rounded-full flex items-center justify-center hover:bg-ink hover:text-canvas text-ink z-50 shadow-[1px_1px_0px_0px_rgba(var(--shadow-rgb),1)]"
                >
                  <X size={10} strokeWidth={3} />
                </button>
@@ -209,7 +209,7 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
               value={val}
               onChange={e => setVal(e.target.value)}
               onBlur={() => setEdges((eds) => eds.map(edge => edge.id === id ? { ...edge, data: { ...edge.data, label: val } } : edge))}
-              className={`bg-surface border-2 text-xs font-mono px-2 py-1 outline-none w-28 text-center shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] ${data?.error ? 'border-red-500 text-red-700' : data?.correct ? 'border-green-500 text-green-700' : 'border-line text-ink'}`}
+              className={`bg-surface border-2 text-xs font-mono px-2 py-1 outline-none w-28 text-center shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] ${data?.error ? 'border-ink border-dashed' : data?.correct ? 'border-ink font-bold' : 'border-line text-ink'}`}
               placeholder="Flow Label"
             />
           </div>

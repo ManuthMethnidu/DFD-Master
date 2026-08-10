@@ -386,9 +386,9 @@ export default function DFDSimulator({ user }: { user: any }) {
 
        <div className="flex-1 flex overflow-hidden">
           <aside className="w-[340px] bg-surface border-r-2 border-line flex flex-col z-10 overflow-hidden shrink-0">
-             <div className="p-5 border-b border-gray-100">
+             <div className="p-5 border-b border-line">
                 <div className="flex items-center justify-between mb-2">
-                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{scenario.level}</span>
+                   <span className="text-[10px] font-bold text-muted uppercase tracking-widest">{scenario.level}</span>
                    <span className="text-[9px] font-bold bg-accent text-on-accent px-2 py-0.5 rounded-none uppercase">{scenario.category}</span>
                 </div>
                 <h3 className="text-lg font-bold font-serif mb-2 leading-tight">{scenario.title}</h3>
@@ -402,7 +402,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-2">Expected Elements</h4>
                   <div className={`flex flex-wrap gap-1 transition-all ${!hintsRevealed ? 'blur-sm opacity-60 select-none' : ''}`}>
                     {scenario.ideal.nodes.map(n => (
-                      <span key={n.id} className={`text-[10px] font-mono px-2 py-0.5 border border-line text-ink ${n.type.includes('entity') ? 'bg-amber-50 dark:bg-amber-900/30 dark:text-amber-200' : n.type.includes('process') ? 'bg-sky-50 dark:bg-sky-900/30 dark:text-sky-200' : 'bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-200'}`}>
+                      <span key={n.id} className={`text-[10px] font-mono px-2 py-0.5 border border-line text-ink ${n.type.includes('entity') ? 'bg-surface text-ink' : n.type.includes('process') ? 'bg-canvas text-ink' : 'bg-surface text-ink'}`}>
                         {n.label} ({n.type.includes('dataStore') ? 'Store' : n.type})
                       </span>
                     ))}
@@ -479,9 +479,9 @@ export default function DFDSimulator({ user }: { user: any }) {
                <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-4">Evaluation Result</h2>
                <div className="flex items-baseline gap-2">
                  <span className="text-6xl font-serif italic font-black">{evalState.evaluating ? evalState.score : '--'}</span>
-                 <span className="text-xl text-gray-400">/ 100</span>
+                 <span className="text-xl text-muted">/ 100</span>
                </div>
-               <div className="mt-3 h-1.5 w-full bg-gray-200">
+               <div className="mt-3 h-1.5 w-full bg-surface hover:bg-canvas">
                  <div className="h-full bg-accent transition-all duration-1000 ease-out" style={{ width: `${evalState.evaluating ? evalState.score : 0}%` }}></div>
                </div>
              </div>
@@ -494,15 +494,15 @@ export default function DFDSimulator({ user }: { user: any }) {
                   <ul className="space-y-3 font-mono text-[11px] leading-tight">
                     {evalState.feedback.length > 0 ? (
                        evalState.feedback.map((f, i) => (
-                         <li key={i} className="flex gap-2 border-b border-gray-100 pb-2">
-                           <span className="text-red-600 shrink-0">✗</span>
-                           <span className="text-red-700">{f}</span>
+                         <li key={i} className="flex gap-2 border-b border-line pb-2">
+                           <span className="text-ink shrink-0">✗</span>
+                           <span className="text-ink">{f}</span>
                          </li>
                        ))
                     ) : (
                        <li className="flex gap-2">
-                         <span className="text-green-600 shrink-0">✓</span>
-                         <span className="text-gray-700">Perfect! You have mastered this DFD.</span>
+                         <span className="text-ink shrink-0">✓</span>
+                         <span className="text-ink">Perfect! You have mastered this DFD.</span>
                        </li>
                     )}
                   </ul>
@@ -516,12 +516,12 @@ export default function DFDSimulator({ user }: { user: any }) {
        {showQuestionModal && (
           <div className="fixed inset-0 bg-accent/60 flex items-center justify-center z-50 p-6 backdrop-blur-xs">
              <div className="bg-surface border-2 border-line shadow-[12px_12px_0px_0px_rgba(var(--shadow-rgb),1)] max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden">
-                <div className="p-5 border-b-2 border-line flex justify-between items-center bg-gray-50">
+                <div className="p-5 border-b-2 border-line flex justify-between items-center bg-canvas">
                    <div>
                      <h2 className="text-2xl font-serif font-black italic">Question Bank</h2>
                      <p className="text-xs font-mono text-muted">Browse and search {SCENARIOS.length} Sri Lankan A/L ICT DFD Scenarios</p>
                    </div>
-                   <button onClick={() => setShowQuestionModal(false)} className="p-2 hover:bg-gray-200 border border-line transition-colors">
+                   <button onClick={() => setShowQuestionModal(false)} className="p-2 hover:bg-surface hover:bg-canvas border border-line transition-colors">
                       <X size={20} />
                    </button>
                 </div>
@@ -530,7 +530,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                 <div className="p-4 border-b border-line bg-surface flex flex-col gap-3">
                    <div className="flex gap-3">
                      <div className="relative flex-1">
-                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                         <input
                           type="text"
                           placeholder="Search 200+ questions by keyword (e.g., Bookland, Hospital, Admission, ATM, Library)..."
@@ -557,7 +557,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                         <button
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
-                          className={`text-[10px] font-mono px-3 py-1 border border-line whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-accent text-on-accent font-bold' : 'bg-surface hover:bg-gray-200 text-gray-800'}`}
+                          className={`text-[10px] font-mono px-3 py-1 border border-line whitespace-nowrap transition-colors ${selectedCategory === cat ? 'bg-accent text-on-accent font-bold' : 'bg-surface hover:bg-surface hover:bg-canvas text-ink'}`}
                         >
                           {cat}
                         </button>
@@ -566,7 +566,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                 </div>
 
                 {/* Question List */}
-                <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-gray-50">
+                <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-3 bg-canvas">
                    {filteredScenarios.length > 0 ? (
                       filteredScenarios.map((s) => {
                         const originalIndex = SCENARIOS.findIndex(sc => sc.id === s.id);
@@ -575,7 +575,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                           <div
                             key={s.id}
                             onClick={() => selectScenario(originalIndex)}
-                            className={`p-4 border-2 border-line cursor-pointer transition-all flex flex-col justify-between bg-surface hover:translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${isCurrent ? 'ring-2 ring-black bg-amber-50' : ''}`}
+                            className={`p-4 border-2 border-line cursor-pointer transition-all flex flex-col justify-between bg-surface hover:translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${isCurrent ? 'ring-2 ring-black font-black border-4' : ''}`}
                           >
                             <div>
                                <div className="flex items-center justify-between mb-1.5">
@@ -583,9 +583,9 @@ export default function DFDSimulator({ user }: { user: any }) {
                                   <span className="text-[9px] font-bold bg-accent text-on-accent px-2 py-0.5">{s.category}</span>
                                </div>
                                <h4 className="text-sm font-bold font-serif mb-1 leading-snug">{s.title}</h4>
-                               <p className="text-xs text-gray-600 line-clamp-2 font-serif italic mb-2">"{s.description}"</p>
+                               <p className="text-xs text-ink line-clamp-2 font-serif italic mb-2">"{s.description}"</p>
                             </div>
-                            <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-[10px] font-mono text-muted">
+                            <div className="flex items-center justify-between pt-2 border-t border-line text-[10px] font-mono text-muted">
                                <span>Nodes: {s.ideal.nodes.length} | Flows: {s.ideal.edges.length}</span>
                                <span className="font-bold text-ink uppercase">Start Practice →</span>
                             </div>
@@ -613,7 +613,7 @@ export default function DFDSimulator({ user }: { user: any }) {
           <div className="fixed inset-0 bg-accent/50 flex items-center justify-center z-50 p-4">
              <div className="bg-surface border-2 border-line shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] max-w-2xl w-full p-8 flex flex-col">
                 <h2 className="text-2xl font-serif font-black italic mb-6 border-b-2 border-line pb-4">DFD Syllabus Rules</h2>
-                <ul className="space-y-4 text-sm font-mono text-gray-800">
+                <ul className="space-y-4 text-sm font-mono text-ink">
                    <li className="flex gap-3">
                      <span className="font-bold">01.</span>
                      <span><strong>Data Flow Routing:</strong> Flow lines cannot intersect. Use jump notation for crossings. Text labels must reside entirely above the directional arrow.</span>

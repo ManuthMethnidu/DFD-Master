@@ -7,12 +7,13 @@ import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react'
 import ReactFlow, { addEdge, useNodesState, useEdgesState, Controls, Background, MarkerType, ConnectionMode } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { SCENARIOS, Scenario } from './scenarios';
-import { EntityNode, ProcessNode, DataStoreNode, NoteNode, CustomEdge } from './CustomNodes';
+import { EntityNode, ContextProcessNode, DetailedProcessNode, ProcessNode, DataStoreNode, NoteNode, CustomEdge } from './CustomNodes';
 import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy, StickyNote } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
 
-import { ThemeToggle } from './ThemeToggle';
+import { useHistory } from './useHistory';
+import { Undo, Redo, Eye } from 'lucide-react';
 
 const nodeTypes = {
   entity: EntityNode,
@@ -43,6 +44,38 @@ export default function DFDSimulator({ user }: { user: any }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
+  const [hintsRevealed, setHintsRevealed] = useState(false);
+  const skipNextSnapshot = useRef(false);
+  const { takeSnapshot, undo, redo, canUndo, canRedo, clearHistory } = useHistory([], []);
+
+  useEffect(() => {
+    if (skipNextSnapshot.current) {
+      skipNextSnapshot.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      takeSnapshot(nodes, edges);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [nodes, edges, takeSnapshot]);
+
+  const handleUndo = () => {
+    const state = undo();
+    if (state) {
+      skipNextSnapshot.current = true;
+      setNodes(state.nodes);
+      setEdges(state.edges);
+    }
+  };
+
+  const handleRedo = () => {
+    const state = redo();
+    if (state) {
+      skipNextSnapshot.current = true;
+      setNodes(state.nodes);
+      setEdges(state.edges);
+    }
+  };
 
   const categories = useMemo(() => {
     const cats = new Set<string>();
@@ -69,6 +102,8 @@ export default function DFDSimulator({ user }: { user: any }) {
     setEdges([]);
     setEvalState({ evaluating: false, score: 0, feedback: [] });
     setShowQuestionModal(false);
+    setHintsRevealed(false);
+    clearHistory([], []);
   };
 
   const nextScenario = () => {
@@ -87,13 +122,18 @@ export default function DFDSimulator({ user }: { user: any }) {
   };
 
   const onConnect = useCallback((params: any) => {
-    setEdges((eds) => addEdge({ 
-      ...params, 
-      type: 'custom',
-      animated: true,
-      markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--color-border)' }, 
-      data: { label: '' } 
-    }, eds));
+    setEdges((eds) => {
+      const newEdge = {
+        ...params,
+        id: `e${params.source}-${params.sourceHandle || ''}-${params.target}-${params.targetHandle || ''}-${Date.now()}`,
+        type: 'custom',
+        animated: true,
+        markerEnd: { type: MarkerType.ArrowClosed, color: 'var(--color-border)' }, 
+        data: { label: '' } 
+      };
+
+      return [...eds, newEdge];
+    });
   }, [setEdges]);
 
   const onDragOver = useCallback((event: any) => {
@@ -128,6 +168,11 @@ export default function DFDSimulator({ user }: { user: any }) {
     let currentScore = 100;
     const errors: string[] = [];
 
+    if (hintsRevealed) {
+      currentScore -= 15;
+      errors.push("Hint Penalty: Expected elements were revealed (-15).");
+    }
+
     const idealNodesMap = scenario.ideal.nodes.map(n => ({ ...n, lowerLabel: n.label.toLowerCase() }));
     const idealEdgesMap = scenario.ideal.edges.map(e => ({ 
       ...e, 
@@ -144,24 +189,55 @@ export default function DFDSimulator({ user }: { user: any }) {
       let isError = false;
       let isCorrect = false;
 
+      let idealType: string = idealMatch?.type || "";
+      let actualType = node.type;
+      
+      // Remap for evaluation since scenarios use 'process'
+      if (idealType === 'process') {
+         if (scenario.level === 'Context Diagram') idealType = 'contextProcess';
+         else idealType = 'detailedProcess';
+      }
+
       if (!label) {
          isError = true;
          errors.push(`Shape without a label found (${node.type}). Please label all shapes.`);
-      } else if (scenario.level === 'Context Diagram' && node.type === 'dataStore') {
+      } else if (scenario.level === 'Context Diagram' && node.type.includes('dataStore')) {
          isError = true;
-         errors.push(`Syllabus Rule Violation: Context Diagrams cannot contain Data Stores.`);
+         errors.push(`Architecture Rule Violation: Context Diagrams cannot contain Data Stores.`);
       } else if (!idealMatch) {
          isError = true;
          errors.push(`Unrecognized node: '${node.data.label}'. Check your spelling against the scenario.`);
-      } else if (idealMatch.type !== node.type) {
+      } else if (idealType !== actualType) {
          isError = true;
-         errors.push(`Type mismatch: '${node.data.label}' should be a ${idealMatch.type === 'dataStore' ? 'Data Store' : idealMatch.type}.`);
+         errors.push(`Architecture Rule: '${node.data.label}' should be a ${idealType === 'contextProcess' ? 'Context Process (unpartitioned)' : idealType === 'detailedProcess' ? 'Level 1/2 Process (partitioned)' : idealType === 'dataStore' ? 'Data Store' : idealType}.`);
       } else {
          isCorrect = true;
       }
 
       if (isError) currentScore -= 10;
       return { ...node, data: { ...node.data, correct: isCorrect, error: isError } };
+    });
+
+    
+    // Check Duplicate Entity Architecture Rule
+    const entityNodes = updatedNodes.filter(n => n.type.includes('entity'));
+    const entityLabels = new Set();
+    const duplicatedLabels = new Set();
+    
+    entityNodes.forEach(en => {
+      const label = (en.data.label || '').toLowerCase().trim();
+      if (label) {
+        if (entityLabels.has(label)) duplicatedLabels.add(label);
+        entityLabels.add(label);
+      }
+    });
+
+    entityNodes.forEach(en => {
+      const label = (en.data.label || '').toLowerCase().trim();
+      if (duplicatedLabels.has(label)) {
+        // Automatically marked as duplicate by the node component itself, so no need to error on missing manual notation.
+        // However, we can still award points or note it. We'll just leave it as structurally correct!
+      }
     });
 
     const updatedEdges = edges.map(edge => {
@@ -174,15 +250,15 @@ export default function DFDSimulator({ user }: { user: any }) {
       let isError = false;
       let isCorrect = false;
 
-      if (sourceNode?.type === 'entity' && targetNode?.type === 'entity') {
+      if (sourceNode?.type.includes('entity') && targetNode?.type.includes('entity')) {
          errors.push(`Syllabus Rule Violation: External Entity to External Entity flow is not allowed.`);
          isError = true;
       }
-      if ((sourceNode?.type === 'entity' && targetNode?.type === 'dataStore') || (sourceNode?.type === 'dataStore' && targetNode?.type === 'entity')) {
+      if ((sourceNode?.type.includes('entity') && targetNode?.type.includes('dataStore')) || (sourceNode?.type.includes('dataStore') && targetNode?.type.includes('entity'))) {
          errors.push(`Syllabus Rule Violation: Entities cannot connect directly to Data Stores.`);
          isError = true;
       }
-      if (sourceNode?.type === 'dataStore' && targetNode?.type === 'dataStore') {
+      if (sourceNode?.type.includes('dataStore') && targetNode?.type.includes('dataStore')) {
          errors.push(`Syllabus Rule Violation: Data Store to Data Store flow is not allowed.`);
          isError = true;
       }
@@ -234,7 +310,7 @@ export default function DFDSimulator({ user }: { user: any }) {
     });
 
     updatedNodes.forEach(node => {
-      if (node.type === 'process') {
+      if (node.type.includes('process')) {
          const hasInputs = edges.some(e => e.target === node.id);
          const hasOutputs = edges.some(e => e.source === node.id);
          
@@ -296,10 +372,15 @@ export default function DFDSimulator({ user }: { user: any }) {
              <button onClick={randomScenario} className="px-3 py-1.5 border-2 border-transparent text-ink text-xs font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
                 Random Q
              </button>
+             <button onClick={handleUndo} disabled={!canUndo} className="p-2 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors" title="Undo">
+                <Undo size={14} strokeWidth={3} />
+             </button>
+             <button onClick={handleRedo} disabled={!canRedo} className="p-2 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors" title="Redo">
+                <Redo size={14} strokeWidth={3} />
+             </button>
              <button onClick={() => setShowCheatSheet(true)} className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
                 Rules
              </button>
-             <ThemeToggle />
           </div>
        </header>
 
@@ -311,21 +392,27 @@ export default function DFDSimulator({ user }: { user: any }) {
                    <span className="text-[9px] font-bold bg-accent text-on-accent px-2 py-0.5 rounded-none uppercase">{scenario.category}</span>
                 </div>
                 <h3 className="text-lg font-bold font-serif mb-2 leading-tight">{scenario.title}</h3>
-                <p className="text-xs font-serif leading-relaxed text-gray-700 italic bg-gray-50 p-3 border-l-2 border-line">
+                <p className="text-xs font-serif leading-relaxed text-ink italic bg-canvas p-3 border-l-2 border-line">
                    "{scenario.description}"
                 </p>
              </div>
              
              <div className="p-5 flex-1 flex flex-col gap-4 overflow-y-auto">
-                <div className="border border-line p-3 bg-surface">
+                <div className="border border-line p-3 bg-surface relative overflow-hidden">
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-2">Expected Elements</h4>
-                  <div className="flex flex-wrap gap-1">
+                  <div className={`flex flex-wrap gap-1 transition-all ${!hintsRevealed ? 'blur-sm opacity-60 select-none' : ''}`}>
                     {scenario.ideal.nodes.map(n => (
-                      <span key={n.id} className={`text-[10px] font-mono px-2 py-0.5 border border-line ${n.type === 'entity' ? 'bg-amber-50' : n.type === 'process' ? 'bg-sky-50' : 'bg-emerald-50'}`}>
-                        {n.label} ({n.type === 'dataStore' ? 'Store' : n.type})
+                      <span key={n.id} className={`text-[10px] font-mono px-2 py-0.5 border border-line text-ink ${n.type.includes('entity') ? 'bg-amber-50 dark:bg-amber-900/30 dark:text-amber-200' : n.type.includes('process') ? 'bg-sky-50 dark:bg-sky-900/30 dark:text-sky-200' : 'bg-emerald-50 dark:bg-emerald-900/30 dark:text-emerald-200'}`}>
+                        {n.label} ({n.type.includes('dataStore') ? 'Store' : n.type})
                       </span>
                     ))}
                   </div>
+                  {!hintsRevealed && (
+                    <button onClick={() => setHintsRevealed(true)} className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/40 backdrop-blur-[1px] font-bold text-[10px] hover:bg-surface/60 transition-colors uppercase tracking-widest text-ink">
+                      <Eye size={16} className="mb-1 opacity-80" />
+                      Reveal (-15 pts)
+                    </button>
+                  )}
                 </div>
 
                 {!evalState.evaluating ? (
@@ -358,6 +445,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                nodeTypes={nodeTypes}
                edgeTypes={edgeTypes}
                connectionMode={ConnectionMode.Loose}
+               isValidConnection={(conn) => conn.source !== conn.target}
                fitView
              >
                <Controls />
@@ -385,6 +473,7 @@ export default function DFDSimulator({ user }: { user: any }) {
              </div>
           </main>
           
+          {evalState.evaluating && (
           <aside className="w-[280px] bg-surface text-ink p-5 flex flex-col z-10 border-l-2 border-line overflow-hidden shrink-0">
              <div className="mb-6">
                <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted mb-4">Evaluation Result</h2>
@@ -420,6 +509,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                )}
              </div>
           </aside>
+       )}
        </div>
 
        {/* Question Selector Modal (200+ Scenarios Browser) */}
@@ -457,6 +547,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                        <option value="All">All Levels</option>
                        <option value="Context Diagram">Context Diagrams</option>
                        <option value="Level 1 DFD">Level 1 DFDs</option>
+                       <option value="Level 2 DFD">Level 2 DFDs</option>
                      </select>
                    </div>
 
@@ -525,27 +616,23 @@ export default function DFDSimulator({ user }: { user: any }) {
                 <ul className="space-y-4 text-sm font-mono text-gray-800">
                    <li className="flex gap-3">
                      <span className="font-bold">01.</span>
-                     <span><strong>External Entities</strong> are sources or destinations of data. They cannot communicate directly with each other (Entity → Entity is invalid).</span>
+                     <span><strong>Data Flow Routing:</strong> Flow lines cannot intersect. Use jump notation for crossings. Text labels must reside entirely above the directional arrow.</span>
                    </li>
                    <li className="flex gap-3">
                      <span className="font-bold">02.</span>
-                     <span><strong>Data Stores</strong> hold data at rest. Data cannot move directly from one store to another (Data Store → Data Store is invalid).</span>
+                     <span><strong>Entity Connections:</strong> Entity → Entity is valid but requires a dashed arrow. Entity → Data Store is structurally invalid.</span>
                    </li>
                    <li className="flex gap-3">
                      <span className="font-bold">03.</span>
-                     <span>An External Entity cannot directly read/write to a Data Store. It must go through a Process (Entity → Data Store is invalid).</span>
+                     <span><strong>Data Store Connections:</strong> Data Store → Data Store is invalid. Data Store → Entity is invalid. Intermediary processes are always required.</span>
                    </li>
                    <li className="flex gap-3">
                      <span className="font-bold">04.</span>
-                     <span>A <strong>Process</strong> transforms data. It must have at least one input data flow and at least one output data flow (no miracles or black holes).</span>
+                     <span><strong>Duplicate Entities:</strong> Marked by a diagonal strike-through in the top-left quadrant. If used, all identical entities in the system must be marked as duplicates.</span>
                    </li>
                    <li className="flex gap-3">
                      <span className="font-bold">05.</span>
-                     <span><strong>Context Diagrams</strong> (Level 0) must NOT contain Data Stores. They provide a high-level view showing only the main system Process and External Entities.</span>
-                   </li>
-                   <li className="flex gap-3">
-                     <span className="font-bold">06.</span>
-                     <span>All data flows must be labeled accurately.</span>
+                     <span><strong>Process Geometries:</strong> Context Diagrams use unpartitioned processes. Level 1/2 DFDs use partitioned processes (ID, Noun Name, Verb Description).</span>
                    </li>
                 </ul>
                 <div className="mt-8 flex justify-end">

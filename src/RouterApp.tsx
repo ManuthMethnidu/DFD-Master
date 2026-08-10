@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider, createOrUpdateUserProfile, getUserProfile, getLeaderboard } from './firebase';
-import { User, LogOut, Award, Trophy, ArrowLeft } from 'lucide-react';
+import { User, LogOut, Award, Trophy, ArrowLeft, Info, X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import DFDSimulator from './App';
 
@@ -142,6 +142,14 @@ function Profile({ user }: { user: any }) {
             </div>
           </div>
         </div>
+
+        <div className="mt-8 text-center text-xs font-mono text-muted space-y-2">
+          <p>We respect your privacy. We won't share your data, sell it to third parties, or do other sketchy shit.</p>
+          <div className="flex justify-center gap-4 uppercase tracking-widest text-[10px] font-bold">
+            <a href="#" className="hover:text-ink underline decoration-line underline-offset-4 transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-ink underline decoration-line underline-offset-4 transition-colors">Privacy Policy</a>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -149,19 +157,39 @@ function Profile({ user }: { user: any }) {
 
 function Leaderboard() {
   const [leaders, setLeaders] = useState<any[]>([]);
+  const [showInfo, setShowInfo] = useState(false);
   
   useEffect(() => {
     getLeaderboard().then(data => data && setLeaders(data));
   }, []);
 
+  const getRank = (score: number) => {
+    if (score >= 1000) return 'DFD Grandmaster';
+    if (score >= 500) return 'Systems Architect';
+    if (score >= 250) return 'Process Analyst';
+    if (score >= 100) return 'Data Flow Apprentice';
+    return 'Novice Modeler';
+  };
+
+  const getRankColor = (score: number) => {
+    if (score >= 1000) return 'text-amber-500 border-amber-500 bg-amber-50 dark:bg-amber-900/30';
+    if (score >= 500) return 'text-slate-500 border-slate-500 bg-slate-50 dark:bg-slate-800/50';
+    if (score >= 250) return 'text-amber-700 border-amber-700 bg-orange-50 dark:bg-orange-900/30';
+    if (score >= 100) return 'text-emerald-500 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/30';
+    return 'text-sky-500 border-sky-500 bg-sky-50 dark:bg-sky-900/30';
+  };
+
   return (
     <div className="min-h-screen bg-canvas text-ink p-8 md:p-16 relative">
       <div className="absolute top-4 right-4"><ThemeToggle /></div>
       <div className="max-w-4xl mx-auto">
-        <div className="mb-12">
+        <div className="mb-12 flex items-center justify-between">
           <Link to="/" className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest hover:bg-accent hover:text-on-accent border-2 border-transparent hover:border-line px-3 py-1.5 transition-colors">
             <ArrowLeft size={16} /> Back to Simulator
           </Link>
+          <button onClick={() => setShowInfo(true)} className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest bg-surface border-2 border-line px-3 py-1.5 hover:bg-canvas transition-colors">
+            <Info size={16} /> Marking & Ranks
+          </button>
         </div>
         
         <div className="bg-surface border-4 border-line p-8 md:p-12 shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)]">
@@ -177,9 +205,14 @@ function Leaderboard() {
             {leaders.length > 0 ? (
               leaders.map((leader, idx) => (
                 <div key={leader.uid} className={`flex items-center justify-between p-4 md:p-6 border-2 border-line ${idx === 0 ? 'bg-amber-100 dark:bg-amber-900 shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] -translate-y-1 -translate-x-1' : 'bg-canvas'}`}>
-                  <div className="flex items-center gap-4 md:gap-8">
-                    <span className="text-2xl md:text-3xl font-serif font-black italic text-muted">#{idx + 1}</span>
-                    <span className="text-lg md:text-xl font-bold">{leader.displayName}</span>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
+                    <div className="flex items-center gap-4">
+                        <span className="text-2xl md:text-3xl font-serif font-black italic text-muted w-8">#{idx + 1}</span>
+                        <span className="text-lg md:text-xl font-bold">{leader.displayName}</span>
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 whitespace-nowrap self-start md:self-auto ${getRankColor(leader.totalScore)}`}>
+                        {getRank(leader.totalScore)}
+                    </span>
                   </div>
                   <div className="flex items-baseline gap-2 text-right">
                     <span className="text-2xl md:text-3xl font-serif font-black italic">{leader.totalScore}</span>
@@ -195,6 +228,66 @@ function Leaderboard() {
           </div>
         </div>
       </div>
+
+      {showInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/20 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-surface border-4 border-line max-w-2xl w-full p-8 shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)] my-auto relative">
+            <button onClick={() => setShowInfo(false)} className="absolute top-4 right-4 p-2 hover:bg-canvas border-2 border-transparent hover:border-line transition-colors text-ink">
+              <X size={20} strokeWidth={3} />
+            </button>
+            <h2 className="text-3xl font-serif font-black italic mb-8 border-b-4 border-line pb-4 text-ink">Marking & Ranks</h2>
+            
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted mb-4">Ranking System</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center border-b-2 border-line/20 pb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 ${getRankColor(1000)}`}>DFD Grandmaster</span>
+                    <span className="font-mono text-sm font-bold text-ink">1000+ pts</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b-2 border-line/20 pb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 ${getRankColor(500)}`}>Systems Architect</span>
+                    <span className="font-mono text-sm font-bold text-ink">500+ pts</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b-2 border-line/20 pb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 ${getRankColor(250)}`}>Process Analyst</span>
+                    <span className="font-mono text-sm font-bold text-ink">250+ pts</span>
+                  </div>
+                  <div className="flex justify-between items-center border-b-2 border-line/20 pb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 ${getRankColor(100)}`}>Data Flow Apprentice</span>
+                    <span className="font-mono text-sm font-bold text-ink">100+ pts</span>
+                  </div>
+                  <div className="flex justify-between items-center pb-2">
+                    <span className={`text-[10px] font-bold uppercase tracking-widest border px-2 py-0.5 ${getRankColor(0)}`}>Novice Modeler</span>
+                    <span className="font-mono text-sm font-bold text-ink">0+ pts</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted mb-4">Marking Scheme</h3>
+                <div className="space-y-4 font-mono text-sm text-ink">
+                  <p><strong>Base Score:</strong> 100 points per scenario.</p>
+                  <ul className="space-y-2 list-disc list-inside text-muted">
+                    <li><span className="text-emerald-600 font-bold">Correct Matches:</span> +Points</li>
+                    <li><span className="text-red-500 font-bold">Missing Element:</span> -20 pts each</li>
+                    <li><span className="text-red-500 font-bold">Wrong Connection:</span> -10 pts each</li>
+                    <li><span className="text-red-500 font-bold">Wrong Direction:</span> -5 pts each</li>
+                    <li><span className="text-red-500 font-bold">Revealing Hints:</span> -15 pts flat penalty</li>
+                  </ul>
+                  <div className="p-3 bg-amber-50 dark:bg-amber-900/30 border-2 border-amber-200 dark:border-amber-700 text-amber-800 dark:text-amber-200 text-xs mt-4">
+                    <strong>Note:</strong> Architecture rules (e.g. Entity to Entity direct links) will cause immediate failure of the evaluation step for that element.
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button onClick={() => setShowInfo(false)} className="mt-8 w-full py-4 border-4 border-line bg-surface text-ink font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

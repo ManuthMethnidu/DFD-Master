@@ -1,3 +1,5 @@
+import { GENERATED_SCENARIOS } from './generatedScenarios';
+
 export interface ScenarioNode {
   id: string;
   type: 'entity' | 'process' | 'dataStore';
@@ -14,7 +16,7 @@ export interface Scenario {
   id: number;
   title: string;
   category: string;
-  level: 'Context Diagram' | 'Level 1 DFD';
+  level: 'Context Diagram' | 'Level 1 DFD' | 'Level 2 DFD';
   description: string;
   ideal: {
     nodes: ScenarioNode[];
@@ -459,4 +461,4 @@ function generateFullScenariosList(): Scenario[] {
   return scenarios;
 }
 
-export const SCENARIOS: Scenario[] = generateFullScenariosList();
+export const SCENARIOS: Scenario[] = [...generateFullScenariosList(), ...GENERATED_SCENARIOS];

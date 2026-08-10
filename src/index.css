@@ -20,23 +20,14 @@
     --bg-canvas: #FAF9F6;
     --bg-surface: #ffffff;
     --color-ink: #000000;
-    --color-ink-muted: #6b7280;
+    --color-ink-muted: #4b5563;
     --color-border: #000000;
     --color-accent: #000000;
     --color-accent-text: #ffffff;
     --shadow-rgb: 0, 0, 0;
   }
 
-  .dark {
-    --bg-canvas: #121212;
-    --bg-surface: #1e1e1e;
-    --color-ink: #FAF9F6;
-    --color-ink-muted: #9ca3af;
-    --color-border: #555555;
-    --color-accent: #FAF9F6;
-    --color-accent-text: #000000;
-    --shadow-rgb: 255, 255, 255;
-  }
+  
 }
 
 html, body, #root {
@@ -57,5 +48,18 @@ html, body, #root {
 @keyframes dashdraw {
   from {
     stroke-dashoffset: 10;
+  }
+}
+
+@layer base {
+  .dark {
+    --bg-canvas: #0f1115;
+    --bg-surface: #1a1d24;
+    --color-ink: #f3f4f6;
+    --color-ink-muted: #d1d5db;
+    --color-border: #374151;
+    --color-accent: #f3f4f6;
+    --color-accent-text: #0f1115;
+    --shadow-rgb: 255, 255, 255;
   }
 }

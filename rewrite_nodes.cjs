@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Handle, Position, NodeResizer, useReactFlow, useNodes, BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getBezierPath } from 'reactflow';
+const fs = require('fs');
+const content = `import { useState, useEffect } from 'react';
+import { Handle, Position, NodeResizer, useReactFlow, BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from 'reactflow';
 import { X } from 'lucide-react';
 
 const DeleteButton = ({ id }: { id: string }) => {
@@ -31,9 +32,9 @@ export const EntityNode = ({ data, id, selected }: any) => {
   const [isDuplicate, setIsDuplicate] = useState(data?.isDuplicate || false);
   const { setNodes } = useReactFlow();
   useEffect(() => { setVal(data?.label || ''); setIsDuplicate(data?.isDuplicate || false); }, [data?.label, data?.isDuplicate]);
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-red-500 bg-red-50 text-red-900' : data.correct ? 'border-green-500 bg-green-50 text-green-900' : 'border-line bg-surface text-ink';
   return (
-    <div className={`border-2 rounded-[50%] w-32 h-24 flex flex-col items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
+    <div className={\`border-2 rounded-[50%] w-32 h-24 flex flex-col items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] \${bgColor}\`}>
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
        
@@ -42,7 +43,9 @@ export const EntityNode = ({ data, id, selected }: any) => {
            <line x1="0" y1="30" x2="30" y2="0" stroke="currentColor" strokeWidth="2" />
          </svg>
        )}
-       
+       <button onClick={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, isDuplicate: !isDuplicate } } : n))} className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 text-[8px] bg-surface border border-line px-1 rounded-sm z-10 hover:bg-gray-100 shadow-[1px_1px_0px_0px_rgba(var(--shadow-rgb),1)]">
+         Dup
+       </button>
        
        <textarea value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-3/4 h-3/4 text-center bg-transparent outline-none text-sm font-mono font-bold p-2 resize-none overflow-hidden flex items-center justify-center z-10" placeholder="Entity Name" />
        <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-muted font-bold uppercase tracking-wider">Entity</div>
@@ -54,9 +57,9 @@ export const ContextProcessNode = ({ data, id, selected }: any) => {
   const [val, setVal] = useState(data?.label || '');
   const { setNodes } = useReactFlow();
   useEffect(() => { setVal(data?.label || ''); }, [data?.label]);
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-red-500 bg-red-50 text-red-900' : data.correct ? 'border-green-500 bg-green-50 text-green-900' : 'border-line bg-surface text-ink';
   return (
-    <div className={`border-2 w-32 h-24 flex items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
+    <div className={\`border-2 w-32 h-24 flex items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] \${bgColor}\`}>
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
        <input value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-full text-center bg-transparent outline-none text-sm font-bold px-4" placeholder="Process Name (Noun)" />
@@ -77,9 +80,9 @@ export const DetailedProcessNode = ({ data, id, selected }: any) => {
     setDesc(data?.description || ''); 
   }, [data?.label, data?.processId, data?.description]);
   
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-red-500 bg-red-50 text-red-900' : data.correct ? 'border-green-500 bg-green-50 text-green-900' : 'border-line bg-surface text-ink';
   return (
-    <div className={`border-2 w-48 h-32 flex flex-col relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
+    <div className={\`border-2 w-48 h-32 flex flex-col relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] \${bgColor}\`}>
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
        <div className="flex h-10 border-b-2 border-line">
@@ -107,9 +110,9 @@ export const DataStoreNode = ({ data, id, selected }: any) => {
   const [storeId, setStoreId] = useState(data?.storeId || '');
   const { setNodes } = useReactFlow();
   useEffect(() => { setVal(data?.label || ''); setStoreId(data?.storeId || ''); }, [data?.label, data?.storeId]);
-  const bgColor = data.error ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-900 dark:text-red-200' : data.correct ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-900 dark:text-green-200' : 'border-line bg-surface text-ink';
+  const bgColor = data.error ? 'border-red-500 bg-red-50 text-red-900' : data.correct ? 'border-green-500 bg-green-50 text-green-900' : 'border-line bg-surface text-ink';
   return (
-    <div className={`border-y-2 border-l-2 border-r-0 w-44 h-16 flex items-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
+    <div className={\`border-y-2 border-l-2 border-r-0 w-44 h-16 flex items-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] \${bgColor}\`}>
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
        <div className="border-r-2 border-line h-full flex flex-col items-center justify-center w-12 shrink-0">
@@ -146,33 +149,8 @@ export const NoteNode = ({ data, id, selected }: any) => {
 };
 
 export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, data, selected, animated }: any) => {
-  const { setEdges, getNode, getEdges } = useReactFlow();
-  const edges = getEdges();
-  
-  // Check for bidirectional or duplicate edges
-  const isBidirectional = edges.some(e => e.source === target && e.target === source);
-  const duplicateEdges = edges.filter(e => e.source === source && e.target === target);
-  const edgeIndex = duplicateEdges.findIndex(e => e.id === id);
-  
-  let edgePath, labelX, labelY;
-  if (isBidirectional || duplicateEdges.length > 1) {
-    // Use bezier for overlapping edges to separate them
-    const offset = (edgeIndex * 20) + (isBidirectional && source > target ? 30 : 0);
-    const path = getBezierPath({ 
-      sourceX, sourceY, 
-      targetX, targetY, 
-      sourcePosition, targetPosition,
-      curvature: 0.25 + (offset / 100)
-    });
-    edgePath = path[0];
-    labelX = path[1];
-    labelY = path[2] - offset; // Offset label vertically
-  } else {
-    const path = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition });
-    edgePath = path[0];
-    labelX = path[1];
-    labelY = path[2];
-  }
+  const [edgePath, labelX, labelY] = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition });
+  const { setEdges, getNode } = useReactFlow();
   const [val, setVal] = useState(data?.label || '');
   useEffect(() => { setVal(data?.label || ''); }, [data?.label]);
   
@@ -185,12 +163,12 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
 
   return (
     <>
-      <BaseEdge path={edgePath} markerEnd={markerEnd} style={{ ...style, stroke: strokeColor, strokeWidth: selected ? 3 : 2, strokeDasharray }}  />
+      <BaseEdge path={edgePath} markerEnd={markerEnd} style={{ ...style, stroke: strokeColor, strokeWidth: selected ? 3 : 2, strokeDasharray }} className={animated ? 'animated-edge' : ''} />
       <EdgeLabelRenderer>
         <div
           style={{
             position: 'absolute',
-            transform: `translate(-50%, -100%) translate(${labelX}px,${labelY}px)`,
+            transform: \`translate(-50%, -100%) translate(\${labelX}px,\${labelY}px)\`,
             pointerEvents: 'all',
             paddingBottom: '6px'
           }}
@@ -209,7 +187,7 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
               value={val}
               onChange={e => setVal(e.target.value)}
               onBlur={() => setEdges((eds) => eds.map(edge => edge.id === id ? { ...edge, data: { ...edge.data, label: val } } : edge))}
-              className={`bg-surface border-2 text-xs font-mono px-2 py-1 outline-none w-28 text-center shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] ${data?.error ? 'border-red-500 text-red-700' : data?.correct ? 'border-green-500 text-green-700' : 'border-line text-ink'}`}
+              className={\`bg-surface border-2 text-xs font-mono px-2 py-1 outline-none w-28 text-center shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] \${data?.error ? 'border-red-500 text-red-700' : data?.correct ? 'border-green-500 text-green-700' : 'border-line text-ink'}\`}
               placeholder="Flow Label"
             />
           </div>
@@ -218,3 +196,5 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
     </>
   );
 };
+`;
+fs.writeFileSync('src/CustomNodes.tsx', content);

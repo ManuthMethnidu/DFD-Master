@@ -30,26 +30,28 @@ Before you begin, ensure you have the following installed on your local machine:
 
 ## 🔒 Security & Environment Variables
 
-> **IMPORTANT:** This repository does NOT include API keys, database credentials, or secret tokens. All sensitive information is excluded via `.gitignore` to ensure security. 
+> **IMPORTANT:** This repository does NOT include API keys, database credentials, or secret tokens. All sensitive information is excluded via `.gitignore` to ensure security.
 
-To run this project locally, you must provide your own Firebase configuration. 
+To run this project locally or deploy it to a service like Netlify, you must provide your own Firebase configuration using Environment Variables. 
 
 1. Create a Firebase Project in the [Firebase Console](https://console.firebase.google.com/).
 2. Enable **Firestore Database** and **Google Authentication**.
-3. Create a file named `firebase-applet-config.json` in the root directory of this project.
-4. Add your Firebase web app configuration to this file:
+3. For local development, create a file named `.env` in the root directory (this is ignored by Git):
 
-```json
-{
-  "apiKey": "YOUR_API_KEY",
-  "authDomain": "YOUR_PROJECT_ID.firebaseapp.com",
-  "projectId": "YOUR_PROJECT_ID",
-  "storageBucket": "YOUR_PROJECT_ID.appspot.com",
-  "messagingSenderId": "YOUR_MESSAGING_SENDER_ID",
-  "appId": "YOUR_APP_ID",
-  "firestoreDatabaseId": "(default)"
-}
+```env
+VITE_FIREBASE_API_KEY=YOUR_API_KEY
+VITE_FIREBASE_AUTH_DOMAIN=YOUR_PROJECT_ID.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+VITE_FIREBASE_STORAGE_BUCKET=YOUR_PROJECT_ID.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=YOUR_MESSAGING_SENDER_ID
+VITE_FIREBASE_APP_ID=YOUR_APP_ID
+VITE_FIREBASE_DATABASE_ID=(default)
 ```
+
+**Netlify Deployment:**
+When deploying to Netlify, go to **Site configuration → Environment variables** and add all the `VITE_FIREBASE_*` variables listed above so the build can resolve your credentials securely!
+
+*(Note: The build engine uses Vite's `import.meta.glob` to optionally load a local `firebase-applet-config.json` if available, ensuring seamless local AI studio development without breaking CI/CD pipelines like Netlify).*
 
 ---
 
@@ -69,7 +71,7 @@ Follow these steps to set up the development environment:
    ```
 
 3. **Verify Configuration:**
-   Ensure your `firebase-applet-config.json` file is present in the root directory as explained above.
+   Ensure your `.env` file is present in the root directory as explained above.
 
 4. **Start the development server:**
    ```bash
@@ -93,7 +95,7 @@ Follow these steps to set up the development environment:
 ## 🤝 Contributing
 
 Contributions, issues, and feature requests are welcome! 
-Feel free to check the [issues page](https://methnidu.dpdns.org) if you want to contribute.
+Feel free to check the [issues page](https://github.com/your-username/dfd-master/issues) if you want to contribute.
 
 ## ⭐️ Show your support
 

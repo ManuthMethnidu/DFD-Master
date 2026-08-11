@@ -6,3 +6,22 @@ coverage/
 *.log
 .env*
 !.env.example
+firebase-applet-config.json
+
+# Testing
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Quick fix scripts
+*.cjs
+*.sh
+test*.js

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Handle, Position, NodeResizer, useReactFlow, useNodes, BaseEdge, EdgeLabelRenderer, getSmoothStepPath, getBezierPath } from 'reactflow';
+import { Handle, Position, NodeResizer, useReactFlow, useNodes, BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from 'reactflow';
 import { X } from 'lucide-react';
 
 const DeleteButton = ({ id }: { id: string }) => {
@@ -44,8 +44,8 @@ export const EntityNode = ({ data, id, selected }: any) => {
        )}
        
        
-       <textarea value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-3/4 h-3/4 text-center bg-transparent outline-none text-sm font-mono font-bold p-2 resize-none overflow-hidden flex items-center justify-center z-10" placeholder="Entity Name" />
-       <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-muted font-bold uppercase tracking-wider">Entity</div>
+       <textarea value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-3/4 h-3/4 text-center bg-transparent outline-none text-base font-mono font-bold p-2 resize-none overflow-hidden flex items-center justify-center z-10" placeholder="Entity Name" />
+       <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-sm text-ink font-bold uppercase tracking-wider">Entity</div>
     </div>
   );
 };
@@ -59,8 +59,8 @@ export const ContextProcessNode = ({ data, id, selected }: any) => {
     <div className={`border-2 w-32 h-24 flex items-center justify-center relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
-       <input value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-full text-center bg-transparent outline-none text-sm font-bold px-4" placeholder="Process Name (Noun)" />
-       <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-muted font-bold uppercase tracking-wider whitespace-nowrap">Context Process</div>
+       <textarea value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-full h-3/4 text-center bg-transparent outline-none text-base font-bold p-2 resize-none overflow-hidden" placeholder="Process Name (Noun)" />
+       <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-sm text-ink font-bold uppercase tracking-wider whitespace-nowrap">Context Process</div>
     </div>
   );
 };
@@ -82,18 +82,18 @@ export const DetailedProcessNode = ({ data, id, selected }: any) => {
     <div className={`border-2 w-48 h-32 flex flex-col relative shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] ${bgColor}`}>
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
-       <div className="flex h-10 border-b-2 border-line">
+       <div className="flex flex-1 border-b-2 border-line">
          <div className="w-12 border-r-2 border-line shrink-0 flex items-center justify-center">
-            <input value={procId} onChange={e => setProcId(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, processId: procId } } : n))} className="w-full text-center bg-transparent outline-none text-xs font-bold font-mono px-1" placeholder="ID" />
+            <input value={procId} onChange={e => setProcId(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, processId: procId } } : n))} className="w-full text-center bg-transparent outline-none text-sm font-bold font-mono px-1" placeholder="ID" />
          </div>
-         <div className="flex-1 flex items-center justify-center">
-            <input value={name} onChange={e => setName(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: name } } : n))} className="w-full text-center bg-transparent outline-none text-xs font-bold px-1" placeholder="Name (Noun)" />
+         <div className="flex-1 flex items-center justify-center p-1">
+            <textarea value={name} onChange={e => setName(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: name } } : n))} className="w-full h-full text-center bg-transparent outline-none text-sm font-bold px-1 resize-none overflow-hidden" placeholder="Name (Noun)" />
          </div>
        </div>
        <div className="flex-1 flex items-center justify-center p-2">
-         <textarea value={desc} onChange={e => setDesc(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, description: desc } } : n))} className="w-full h-full text-center bg-transparent outline-none text-[10px] resize-none overflow-hidden" placeholder="Description (Verb)" />
+         <textarea value={desc} onChange={e => setDesc(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, description: desc } } : n))} className="w-full h-full text-center bg-transparent outline-none text-sm resize-none overflow-hidden" placeholder="Description (Verb)" />
        </div>
-       <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] text-muted font-bold uppercase tracking-wider whitespace-nowrap">Level 1/2 Process</div>
+       <div className="absolute -top-5 left-1/2 -translate-x-1/2 text-sm text-ink font-bold uppercase tracking-wider whitespace-nowrap">Level 1/2 Process</div>
     </div>
   );
 };
@@ -113,12 +113,12 @@ export const DataStoreNode = ({ data, id, selected }: any) => {
        {selected && <DeleteButton id={id} />}
        <NodeHandles />
        <div className="border-r-2 border-line h-full flex flex-col items-center justify-center w-12 shrink-0">
-          <input value={storeId} onChange={e => setStoreId(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, storeId: storeId } } : n))} className="w-full text-center bg-transparent outline-none font-mono font-bold text-sm" placeholder="D1" />
+          <input value={storeId} onChange={e => setStoreId(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, storeId: storeId } } : n))} className="w-full text-center bg-transparent outline-none font-mono font-bold text-base" placeholder="D1" />
        </div>
        <div className="flex-1 h-full p-2 flex items-center">
-         <textarea value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-full h-full bg-transparent outline-none text-sm font-mono resize-none overflow-hidden" placeholder="Data Store Name" />
+         <textarea value={val} onChange={e => setVal(e.target.value)} onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))} className="w-full h-full bg-transparent outline-none text-base font-mono resize-none overflow-hidden" placeholder="Data Store Name" />
        </div>
-       <div className="absolute -top-5 left-0 text-[9px] text-muted font-bold uppercase tracking-wider whitespace-nowrap">Data Store</div>
+       <div className="absolute -top-5 left-0 text-sm text-ink font-bold uppercase tracking-wider whitespace-nowrap">Data Store</div>
     </div>
   );
 };
@@ -137,7 +137,7 @@ export const NoteNode = ({ data, id, selected }: any) => {
             value={val}
             onChange={e => setVal(e.target.value)}
             onBlur={() => setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, label: val } } : n))}
-            className="w-full h-full bg-transparent outline-none text-sm font-sans resize-none overflow-hidden text-black"
+            className="w-full h-full bg-transparent outline-none text-base font-sans resize-none overflow-hidden text-black"
             placeholder="Add a note..."
           />
       </div>
@@ -155,23 +155,14 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
   const edgeIndex = duplicateEdges.findIndex(e => e.id === id);
   
   let edgePath, labelX, labelY;
+  const path = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, borderRadius: 0 });
+  edgePath = path[0];
+  labelX = path[1];
+  labelY = path[2];
+
   if (isBidirectional || duplicateEdges.length > 1) {
-    // Use bezier for overlapping edges to separate them
     const offset = (edgeIndex * 20) + (isBidirectional && source > target ? 30 : 0);
-    const path = getBezierPath({ 
-      sourceX, sourceY, 
-      targetX, targetY, 
-      sourcePosition, targetPosition,
-      curvature: 0.25 + (offset / 100)
-    });
-    edgePath = path[0];
-    labelX = path[1];
-    labelY = path[2] - offset; // Offset label vertically
-  } else {
-    const path = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition });
-    edgePath = path[0];
-    labelX = path[1];
-    labelY = path[2];
+    labelY -= offset; // Offset label vertically
   }
   const [val, setVal] = useState(data?.label || '');
   useEffect(() => { setVal(data?.label || ''); }, [data?.label]);
@@ -209,7 +200,7 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
               value={val}
               onChange={e => setVal(e.target.value)}
               onBlur={() => setEdges((eds) => eds.map(edge => edge.id === id ? { ...edge, data: { ...edge.data, label: val } } : edge))}
-              className={`bg-surface border-2 text-xs font-mono px-2 py-1 outline-none w-28 text-center shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] ${data?.error ? 'border-ink border-dashed' : data?.correct ? 'border-ink font-bold' : 'border-line text-ink'}`}
+              className={`bg-surface border-2 text-sm font-mono px-2 py-1 outline-none w-28 text-center shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] ${data?.error ? 'border-ink border-dashed' : data?.correct ? 'border-ink font-bold' : 'border-line text-ink'}`}
               placeholder="Flow Label"
             />
           </div>

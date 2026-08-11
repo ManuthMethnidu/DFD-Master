@@ -69,9 +69,10 @@ export async function getUserProfile(uid: string) {
   }
 }
 
-export async function getLeaderboard() {
+export async function getLeaderboard(type: 'desktop' | 'mobile' = 'desktop') {
+    const field = type === 'mobile' ? 'totalMobileScore' : 'totalScore';
   try {
-    const q = query(collection(db, 'users'), orderBy('totalScore', 'desc'), limit(10));
+    const q = query(collection(db, 'users'), orderBy(field, 'desc'), limit(10));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data());
   } catch (error) {
@@ -80,7 +81,7 @@ export async function getLeaderboard() {
 }
 
 // Ensure the user total score is updated
-export async function updateUserScore(uid: string, scenarioId: number, newScore: number) {
+export async function updateUserScore(uid: string, scenarioId: number | string, newScore: number) {
   try {
     const scoreRef = doc(db, 'users', uid, 'scores', scenarioId.toString());
     const scoreSnap = await getDoc(scoreRef);
@@ -113,7 +114,8 @@ export async function updateUserScore(uid: string, scenarioId: number, newScore:
       const userSnap = await getDoc(userRef);
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        let updatedScore = (userData.totalScore || 0) + scoreDiff;
+        let isMobile = typeof scenarioId === 'string' && scenarioId.startsWith('mobile_');
+        let updatedScore = ((isMobile ? userData.totalMobileScore : userData.totalScore) || 0) + scoreDiff;
         
         // Compute Badges based on total score
         const newBadges = [...(userData.badges || [])];
@@ -122,11 +124,14 @@ export async function updateUserScore(uid: string, scenarioId: number, newScore:
         if (updatedScore >= 1000 && !newBadges.includes('Expert')) newBadges.push('Expert');
         if (updatedScore >= 5000 && !newBadges.includes('Master')) newBadges.push('Master');
         
-        await updateDoc(userRef, {
-          totalScore: updatedScore,
-          badges: newBadges,
-          updatedAt: new Date()
-        });
+        const updatePayload: any = { updatedAt: new Date(), badges: newBadges };
+        if (isMobile) {
+          updatePayload.totalMobileScore = updatedScore;
+        } else {
+          updatePayload.totalScore = updatedScore;
+        }
+        await updateDoc(userRef, updatePayload);
+
       }
     }
   } catch (error) {

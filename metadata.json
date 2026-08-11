@@ -1,6 +1,6 @@
 {
-  "name": "A/L ICT DFD Simulator",
-  "description": "An interactive Context Diagram and DFD Simulator and Auto-Grader for Sri Lankan Advanced Level ICT students.",
+  "name": "DFD Master",
+  "description": "An interactive Data Flow Diagram (DFD) simulator and learning tool. Master system modeling, data flows, and processes through hands-on practice scenarios.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

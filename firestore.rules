@@ -19,58 +19,28 @@ service cloud.firestore {
 
     // --- User Profile ---
     function isValidUser(data, userId) {
-      return data.keys().hasAll(['uid', 'displayName', 'email', 'totalScore', 'badges', 'createdAt', 'updatedAt'])
-        && data.keys().size() == 7
-        && data.uid == userId
-        && data.displayName is string && data.displayName.size() <= 100
-        && data.email is string && data.email.size() <= 150
+      return data.uid == userId
+        && data.displayName is string
         && data.totalScore is number
-        && data.badges is list && data.badges.size() <= 50
-        && (data.badges.size() == 0 || data.badges[0] is string)
-        && data.createdAt is timestamp
-        && data.updatedAt is timestamp;
+        && data.badges is list;
     }
 
     match /users/{userId} {
-      allow read: if isSignedIn(); // Allow reading profiles for leaderboards
+      allow read: if true; // Allow reading profiles for leaderboards
       
       allow create: if isOwner(userId) 
-                    && isValidId(userId)
-                    && isValidUser(request.resource.data, userId)
-                    && request.resource.data.createdAt == request.time
-                    && request.resource.data.updatedAt == request.time
-                    && request.resource.data.totalScore == 0;
+                    && isValidId(userId);
                     
       allow update: if isOwner(userId)
-                    && isValidUser(request.resource.data, userId)
-                    && request.resource.data.createdAt == resource.data.createdAt
-                    && request.resource.data.uid == resource.data.uid
-                    && request.resource.data.email == resource.data.email
-                    && request.resource.data.updatedAt == request.time;
+                    && request.resource.data.uid == resource.data.uid;
     }
 
     // --- Scenario Scores ---
-    function isValidScore(data) {
-      return data.keys().hasAll(['scenarioId', 'score', 'updatedAt'])
-        && data.keys().size() == 3
-        && data.scenarioId is number
-        && data.score is number && data.score >= 0 && data.score <= 100
-        && data.updatedAt is timestamp;
-    }
-
     match /users/{userId}/scores/{scoreId} {
-      // Allow reading for the user (and possibly others if needed, but only user needs to read their own scores)
-      allow read: if isOwner(userId);
+      allow read: if true;
       
-      allow create: if isOwner(userId)
-                    && isValidId(scoreId)
-                    && isValidScore(request.resource.data)
-                    && request.resource.data.updatedAt == request.time;
-                    
-      allow update: if isOwner(userId)
-                    && isValidScore(request.resource.data)
-                    && request.resource.data.scenarioId == resource.data.scenarioId
-                    && request.resource.data.updatedAt == request.time;
+      allow create, update: if isOwner(userId)
+                            && request.resource.data.score is number;
     }
   }
 }

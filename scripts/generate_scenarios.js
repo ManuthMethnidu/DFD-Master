@@ -26,9 +26,9 @@ const scenarios = [];
 
 const levels = ['Context Diagram', 'Level 1 DFD', 'Level 2 DFD'];
 
-// 329 of each level
+// 33 of each level
 for (let lvl = 0; lvl < 3; lvl++) {
-  for (let i = 0; i < 329; i++) {
+  for (let i = 0; i < 33; i++) {
     const level = levels[lvl];
     const domain = r(domains);
     
@@ -56,24 +56,24 @@ for (let lvl = 0; lvl < 3; lvl++) {
     // Entities
     for(let e=0; e<numEntities; e++) {
        const ent = r(domainEntities) + (e > 0 ? " " + (e+1) : "");
-       nodes.push({ id: \`e\${e}\`, type: 'entity', label: ent });
+       nodes.push({ id: `e${e}`, type: 'entity', label: ent });
     }
     
     // Processes
     for(let p=0; p<numProcesses; p++) {
        let pLabel = "";
        if (level === 'Context Diagram') {
-          pLabel = \`\${domain} System\`;
+          pLabel = `${domain} System`;
        } else {
-          pLabel = \`\${p+1}.0 \${r(processes_verbs)} \${r(domainEntities)}\`;
+          pLabel = `${p+1}.0 ${r(processes_verbs)} ${r(domainEntities)}`;
        }
-       nodes.push({ id: \`p\${p}\`, type: 'process', label: pLabel });
+       nodes.push({ id: `p${p}`, type: 'process', label: pLabel });
     }
     
     // Data Stores
     for(let s=0; s<numStores; s++) {
-       const sLabel = \`D\${s+1} \${r(domainEntities)} DB\`;
-       nodes.push({ id: \`s\${s}\`, type: 'dataStore', label: sLabel });
+       const sLabel = `D${s+1} ${r(domainEntities)} DB`;
+       nodes.push({ id: `s${s}`, type: 'dataStore', label: sLabel });
     }
     
     const edges = [];
@@ -98,14 +98,14 @@ for (let lvl = 0; lvl < 3; lvl++) {
            if (!targetNode) continue;
        }
        
-       const label = \`\${r(domainEntities)} \${r(data_nouns)}\`;
+       const label = `${r(domainEntities)} ${r(data_nouns)}`;
        edges.push({ source: sourceNode.label, target: targetNode.label, label });
-       descSentences.push(\`The '\${sourceNode.label}' sends '\${label}' to '\${targetNode.label}'.\`);
+       descSentences.push(`The '${sourceNode.label}' sends '${label}' to '${targetNode.label}'.`);
     }
     
     scenarios.push({
        id: idCounter++,
-       title: \`\${domain} Flow (Q\${idCounter-1})\`,
+       title: `${domain} Flow (Q${idCounter-1})`,
        category: domain,
        level: level,
        difficulty: difficulty,
@@ -115,5 +115,5 @@ for (let lvl = 0; lvl < 3; lvl++) {
   }
 }
 
-fs.writeFileSync('src/generatedScenarios.ts', \`import { Scenario } from './scenarios';\\nexport const GENERATED_SCENARIOS: Scenario[] = \${JSON.stringify(scenarios, null, 2)};\\n\`);
-console.log("Successfully generated 987 scenarios!");
+fs.writeFileSync('src/generatedScenarios.ts', `import { Scenario } from './scenarios';\nexport const GENERATED_SCENARIOS: Scenario[] = ${JSON.stringify(scenarios, null, 2)};\n`);
+console.log("Successfully generated 99 scenarios!");

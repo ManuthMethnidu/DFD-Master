@@ -8,7 +8,7 @@ import ReactFlow, { addEdge, useNodesState, useEdgesState, Controls, Background,
 import 'reactflow/dist/style.css';
 import { SCENARIOS, Scenario } from './scenarios';
 import { EntityNode, ContextProcessNode, DetailedProcessNode, ProcessNode, DataStoreNode, NoteNode, CustomEdge } from './CustomNodes';
-import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy, StickyNote, Undo, Redo, Eye, LayoutGrid } from 'lucide-react';
+import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy, StickyNote, Undo, Redo, Eye, LayoutGrid, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
 
@@ -33,6 +33,7 @@ export default function DFDSimulator({ user }: { user: any }) {
   
   const [evalState, setEvalState] = useState({ evaluating: false, score: 0, feedback: [] as string[] });
   const [showCheatSheet, setShowCheatSheet] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showQuestionModal, setShowQuestionModal] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -452,6 +453,9 @@ export default function DFDSimulator({ user }: { user: any }) {
              <button onClick={onLayout} className="p-2 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Auto-layout">
                 <LayoutGrid size={14} strokeWidth={3} />
              </button>
+             <button onClick={() => setShowResetConfirm(true)} className="p-2 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Reset Canvas">
+                <Trash2 size={14} strokeWidth={3} />
+             </button>
              <button onClick={handleUndo} disabled={!canUndo} className="p-2 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors" title="Undo">
                 <Undo size={14} strokeWidth={3} />
              </button>
@@ -554,12 +558,20 @@ export default function DFDSimulator({ user }: { user: any }) {
                </div>
              )}
              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-surface border-2 border-line p-2 flex gap-4 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-10">
-               <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'entity'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'entity'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+                 <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
+                   <strong className="block mb-1">External Entity</strong>
+                   A person, organization, or external system that sends data to or receives data from the system.
+                 </div>
                  <div className="w-10 h-6 border-2 border-line rounded-[50%] bg-surface"></div>
                  <span className="text-[8px] font-bold tracking-widest uppercase">Entity</span>
                </div>
                <div className="w-[1px] bg-accent h-10 self-center"></div>
-               <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'process'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'process'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+                 <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
+                   <strong className="block mb-1">Process</strong>
+                   Transforms incoming data flows into outgoing data flows. Represents a specific function or action.
+                 </div>
                  {scenario.level === 'Context Diagram' ? (
                    <div className="w-10 h-7 border-2 border-line bg-surface"></div>
                  ) : (
@@ -574,7 +586,11 @@ export default function DFDSimulator({ user }: { user: any }) {
                  <span className="text-[8px] font-bold tracking-widest uppercase">Process</span>
                </div>
                <div className="w-[1px] bg-accent h-10 self-center"></div>
-               <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'dataStore'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'dataStore'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+                 <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
+                   <strong className="block mb-1">Data Store</strong>
+                   A repository where data is kept for later use (e.g., database, file cabinet, logbook).
+                 </div>
                  <div className="w-10 h-7 border-y-2 border-l-2 border-r-0 border-line bg-surface flex">
     <div className="w-3 border-r-2 border-line h-full"></div>
     <div className="flex-1"></div>
@@ -582,7 +598,11 @@ export default function DFDSimulator({ user }: { user: any }) {
                  <span className="text-[8px] font-bold tracking-widest uppercase">Store</span>
                </div>
                <div className="w-[1px] bg-accent h-10 self-center"></div>
-               <div className="flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'note'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'note'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+                 <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
+                   <strong className="block mb-1">Sticky Note</strong>
+                   Add custom annotations, labels, or extra details anywhere on your diagram without affecting marking.
+                 </div>
                  <div className="w-8 h-8 bg-yellow-200 border border-yellow-400 rotate-[-2deg]"></div>
                  <span className="text-[8px] font-bold tracking-widest uppercase">Note</span>
                </div>
@@ -740,6 +760,23 @@ export default function DFDSimulator({ user }: { user: any }) {
                    </div>
                    <button onClick={() => setShowQuestionModal(false)} className="px-4 py-1.5 bg-accent text-on-accent font-bold text-sm uppercase tracking-widest shrink-0">
                       Close
+                   </button>
+                </div>
+             </div>
+          </div>
+       )}
+
+       {showResetConfirm && (
+          <div className="fixed inset-0 bg-accent/50 flex items-center justify-center z-50 p-4">
+             <div className="bg-surface border-4 border-line shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)] max-w-md w-full p-8 flex flex-col">
+                <h2 className="text-2xl font-serif font-black italic mb-4">Reset Canvas?</h2>
+                <p className="text-sm font-mono mb-6 text-ink">Are you sure you want to wipe the canvas? This will remove all nodes and edges from the current scenario.</p>
+                <div className="flex gap-4 justify-end">
+                   <button onClick={() => setShowResetConfirm(false)} className="px-4 py-2 border-2 border-line bg-surface text-ink font-bold uppercase tracking-widest text-sm hover:bg-canvas transition-colors">
+                      Cancel
+                   </button>
+                   <button onClick={() => { setNodes([]); setEdges([]); setEvalState({ evaluating: false, score: 0, feedback: [] }); setShowResetConfirm(false); }} className="px-4 py-2 bg-accent text-on-accent font-bold uppercase tracking-widest text-sm shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] hover:opacity-90 transition-colors">
+                      Confirm Wipe
                    </button>
                 </div>
              </div>

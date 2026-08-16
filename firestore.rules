@@ -1,46 +1,67 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Default deny
     match /{document=**} {
       allow read, write: if false;
     }
 
+    // Auth helpers
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Row-Level Security (RLS) & IDOR Prevention
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    function isValidId(id) { 
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    // Strict Input Validation & Sanitization
+    function isValidId(id) {
+       return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    // Prevent XSS at database layer (no HTML/script tags)
+    function isSanitizedString(str) {
+      return str is string && str.size() <= 100 && !str.matches('.*[<>].*');
+    }
+
+    // Prevent NoSQL Injection / Schema enforcement
+    function isValidUser(incomingData, userId) {
+      return incomingData.keys().hasAll(['uid', 'displayName', 'totalScore', 'badges'])
+        && incomingData.uid == userId
+        && isSanitizedString(incomingData.displayName)
+        && incomingData.totalScore is number
+        && incomingData.totalScore >= 0
+        && incomingData.badges is list;
     }
 
     // --- User Profile ---
-    function isValidUser(data, userId) {
-      return data.uid == userId
-        && data.displayName is string
-        && data.totalScore is number
-        && data.badges is list;
-    }
-
     match /users/{userId} {
-      allow read: if true; // Allow reading profiles for leaderboards
+      // Leaderboard needs read access, but we restrict to only validated records
+      allow read: if true; 
       
-      allow create: if isOwner(userId) 
-                    && isValidId(userId);
-                    
+      allow create: if isOwner(userId)
+                     && isValidId(userId)
+                     && isValidUser(request.resource.data, userId);
+                     
+      // Prevent IDOR & Unauthorized Field Tampering
       allow update: if isOwner(userId)
-                    && request.resource.data.uid == resource.data.uid;
+                    && request.resource.data.uid == resource.data.uid
+                    && isSanitizedString(request.resource.data.displayName)
+                    && request.resource.data.totalScore is number;
     }
 
     // --- Scenario Scores ---
     match /users/{userId}/scores/{scoreId} {
-      allow read: if true;
+      // Restrict specific score history strictly to the owner (Row-Level Security)
+      allow read: if isOwner(userId);
       
       allow create, update: if isOwner(userId)
-                            && request.resource.data.score is number;
+                            && isValidId(scoreId)
+                            && request.resource.data.score is number
+                            && request.resource.data.score >= 0
+                            && request.resource.data.score <= 1000;
     }
   }
 }

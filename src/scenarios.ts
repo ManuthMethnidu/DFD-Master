@@ -1,4 +1,4 @@
-import { GENERATED_SCENARIOS } from './generatedScenarios';
+import { generateScenarios } from './clientScenarioGenerator';
 
 export interface ScenarioNode {
   id: string;
@@ -285,4 +285,4 @@ const PAST_PAPER_SCENARIOS: Scenario[] = [
 
 // Helper procedural template generators to build 200+ distinct syllabus-compliant scenarios
 
-export const SCENARIOS: Scenario[] = [...PAST_PAPER_SCENARIOS, ...GENERATED_SCENARIOS];
+export const SCENARIOS: Scenario[] = [...PAST_PAPER_SCENARIOS, ...generateScenarios(988, 13)];

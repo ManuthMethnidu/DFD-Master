@@ -99,8 +99,18 @@ function Profile({ user }: { user: any }) {
   }, [user]);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigate('/');
+    try {
+      await signOut(auth);
+      // Strict Security Requirement: Clear all client-side session data
+      localStorage.clear();
+      sessionStorage.clear();
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   if (!profile) return <div className="p-8 text-center font-mono">Loading profile...</div>;

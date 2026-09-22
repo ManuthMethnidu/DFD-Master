@@ -13,6 +13,8 @@ import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
 import { RoutingContext } from './orthogonalRouter';
 import { ThemeToggle } from './ThemeToggle';
+import { SoundToggle } from './SoundToggle';
+import { playSound } from './soundEffects';
 
 import { useHistory } from './useHistory';
 
@@ -198,6 +200,7 @@ export default function DFDSimulator({ user }: { user: any }) {
 
       return [...eds, newEdge];
     });
+    playSound('connect');
   }, [setEdges]);
 
   const onDragOver = useCallback((event: any) => {
@@ -209,6 +212,25 @@ export default function DFDSimulator({ user }: { user: any }) {
   const onDragLeave = useCallback(() => {
     setIsDraggingOver(false);
   }, []);
+
+  const addNode = useCallback(
+    (type: string) => {
+      const isNote = type === 'note';
+      const newNode = {
+        id: getId(),
+        type,
+        position: {
+          x: 240 + Math.floor(Math.random() * 50 - 25),
+          y: 180 + Math.floor(Math.random() * 50 - 25),
+        },
+        data: { label: '', isContext: scenario.level === 'Context Diagram' },
+        style: isNote ? { width: 160, height: 160 } : undefined,
+      };
+      setNodes((nds) => nds.concat(newNode));
+      playSound('click');
+    },
+    [setNodes, scenario.level]
+  );
 
   const onDrop = useCallback(
     (event: any) => {
@@ -229,6 +251,7 @@ export default function DFDSimulator({ user }: { user: any }) {
         style: isNote ? { width: 160, height: 160 } : undefined,
       };
       setNodes((nds) => nds.concat(newNode));
+      playSound('click');
     },
     [reactFlowInstance, setNodes, scenario.level]
   );
@@ -424,6 +447,12 @@ export default function DFDSimulator({ user }: { user: any }) {
     const finalScore = Math.max(0, Math.floor(currentScore * difficultyMultiplier));
     setEvalState({ evaluating: true, score: finalScore, feedback: errors });
     
+    if (errors.length === 0 && currentScore >= 80) {
+      playSound('success');
+    } else {
+      playSound('fail');
+    }
+
     if (user) {
       const isMobile = window.innerWidth <= 768;
       const scenarioIdToUse = isMobile ? `mobile_${scenario.id}` : scenario.id;
@@ -486,6 +515,7 @@ export default function DFDSimulator({ user }: { user: any }) {
                 Rules
              </button>
              <ThemeToggle />
+             <SoundToggle />
           </div>
        </header>
 

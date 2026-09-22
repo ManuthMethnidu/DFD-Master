@@ -4,6 +4,8 @@ import { Trophy, ChevronRight, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
 import { ThemeToggle } from './ThemeToggle';
+import { SoundToggle } from './SoundToggle';
+import { playSound } from './soundEffects';
 
 export function MobileMCQ({ user }: { user: any }) {
   const [scenarioIndex, setScenarioIndex] = useState(0);
@@ -48,14 +50,18 @@ export function MobileMCQ({ user }: { user: any }) {
   const handleSubmit = async () => {
     setHasSubmitted(true);
     if (selectedOption !== null && options[selectedOption].isCorrect) {
+      playSound('success');
       if (user) {
         // Log mobile score
         await updateUserScore(user.uid, 'mobile_' + scenario.id, 100);
       }
+    } else {
+      playSound('fail');
     }
   };
 
   const nextScenario = () => {
+    playSound('click');
     setHasSubmitted(false);
     setSelectedOption(null);
     setScenarioIndex((prev) => (prev + 1) % SCENARIOS.length);
@@ -70,6 +76,7 @@ export function MobileMCQ({ user }: { user: any }) {
         </div>
         <div className="flex gap-2 items-center">
            <ThemeToggle />
+           <SoundToggle />
            <Link to="/leaderboard" className="p-2 border-2 border-line hover:bg-canvas">
              <Trophy size={16} />
            </Link>
@@ -95,7 +102,10 @@ export function MobileMCQ({ user }: { user: any }) {
             <button
               key={idx}
               disabled={hasSubmitted}
-              onClick={() => setSelectedOption(idx)}
+              onClick={() => {
+                setSelectedOption(idx);
+                playSound('click');
+              }}
               className={`p-4 border-2 text-left transition-colors text-base font-mono whitespace-pre-wrap leading-relaxed shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)]
                 ${hasSubmitted 
                   ? opt.isCorrect 

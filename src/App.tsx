@@ -436,7 +436,6 @@ export default function DFDSimulator({ user }: { user: any }) {
        <header className="flex items-center justify-between px-4 sm:px-6 py-2 border-b-2 border-line bg-surface z-10 gap-3 min-w-0">
           <div className="flex items-baseline gap-2 xl:gap-3 shrink-0">
              <h1 className="text-2xl sm:text-3xl font-serif font-black italic leading-none whitespace-nowrap">DFD Master.</h1>
-             <span className="text-xs font-bold tracking-[0.15em] uppercase text-ink hidden lg:inline">A/L ICT SYLLABUS ({SCENARIOS.length} QUESTIONS)</span>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0 mx-1">

@@ -14,6 +14,7 @@ import { updateUserScore } from './firebase';
 import { RoutingContext } from './orthogonalRouter';
 import { ThemeToggle } from './ThemeToggle';
 import { SoundToggle } from './SoundToggle';
+import { PWAInstallButton } from './PWAInstallButton';
 import { playSound } from './soundEffects';
 
 import { useHistory } from './useHistory';
@@ -514,6 +515,7 @@ export default function DFDSimulator({ user }: { user: any }) {
              <button onClick={() => setShowCheatSheet(true)} className="px-2.5 py-1 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-wider hover:bg-canvas transition-colors shrink-0">
                 Rules
              </button>
+             <PWAInstallButton />
              <ThemeToggle />
              <SoundToggle />
           </div>

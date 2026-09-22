@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ArrowLeft, Home, Trophy, AlertTriangle, Compass } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export default function NotFound() {
   const location = useLocation();
@@ -21,7 +22,10 @@ export default function NotFound() {
             DFD Master
           </span>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <PWAInstallButton />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content Area */}
@@ -92,8 +96,9 @@ export default function NotFound() {
             <Link
               to="/"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-ink text-canvas font-bold uppercase tracking-widest text-xs sm:text-sm border-2 border-ink hover:bg-accent hover:text-on-accent transition-all shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] active:translate-x-[2px] active:translate-y-[2px]"
+              title="Return to the DFD simulator"
             >
-              <Home size={16} /> Back to Simulator
+              <Home size={16} /> Return Home
             </Link>
 
             <Link

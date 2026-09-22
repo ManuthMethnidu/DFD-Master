@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
 import { ThemeToggle } from './ThemeToggle';
 import { SoundToggle } from './SoundToggle';
+import { PWAInstallButton } from './PWAInstallButton';
 import { playSound } from './soundEffects';
 
 export function MobileMCQ({ user }: { user: any }) {
@@ -75,6 +76,7 @@ export function MobileMCQ({ user }: { user: any }) {
           <span className="text-sm font-bold tracking-[0.1em] uppercase text-ink">Mobile Edition</span>
         </div>
         <div className="flex gap-2 items-center">
+           <PWAInstallButton />
            <ThemeToggle />
            <SoundToggle />
            <Link to="/leaderboard" className="p-2 border-2 border-line hover:bg-canvas" title="Leaderboard">

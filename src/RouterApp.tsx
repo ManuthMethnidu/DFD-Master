@@ -7,6 +7,7 @@ import { ThemeToggle } from './ThemeToggle';
 import ResponsiveApp from './ResponsiveApp';
 import { TermsOfService, PrivacyPolicy } from './LegalPages';
 import NotFound from './NotFound';
+import { OfflineIndicator } from './OfflineIndicator';
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -49,14 +50,17 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<ResponsiveApp user={user} />} />
-      <Route path="/profile" element={user ? <Profile user={user} /> : <Login />} />
-      <Route path="/leaderboard" element={<Leaderboard />} />
-      <Route path="/terms" element={<TermsOfService />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<ResponsiveApp user={user} />} />
+        <Route path="/profile" element={user ? <Profile user={user} /> : <Login />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <OfflineIndicator />
+    </>
   );
 }
 

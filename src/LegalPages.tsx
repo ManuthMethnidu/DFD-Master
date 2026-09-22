@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { PWAInstallButton } from './PWAInstallButton';
 
 const Layout = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="min-h-[100dvh] h-[100dvh] bg-canvas text-ink flex flex-col font-sans overflow-hidden">
@@ -12,7 +13,10 @@ const Layout = ({ title, children }: { title: string, children: React.ReactNode 
         </Link>
         <h1 className="font-serif font-black text-xl italic tracking-wide">{title}</h1>
       </div>
-      <ThemeToggle />
+      <div className="flex items-center gap-2">
+        <PWAInstallButton />
+        <ThemeToggle />
+      </div>
     </header>
     <main className="flex-1 w-full max-w-3xl mx-auto p-6 md:p-12 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}>
       <div className="flex flex-col gap-4 pb-20">

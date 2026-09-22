@@ -15,11 +15,13 @@ __tests__/
 *.spec.ts
 *.spec.tsx
 
-# Screenshots
-*.png
-*.jpg
-*.jpeg
-*.gif
+# Screenshots (temporary local captures only)
+screenshots/
+*.screenshot.png
+
+# Ensure public assets are always tracked
+!public/**/*
+!public/*
 
 # Quick fix scripts
 *.cjs

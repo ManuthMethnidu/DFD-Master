@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { ThemeToggle } from './ThemeToggle';
 
 const Layout = ({ title, children }: { title: string, children: React.ReactNode }) => (
   <div className="h-screen bg-canvas text-ink flex flex-col font-sans">
@@ -11,6 +12,7 @@ const Layout = ({ title, children }: { title: string, children: React.ReactNode 
         </Link>
         <h1 className="font-serif font-black text-xl italic tracking-wide">{title}</h1>
       </div>
+      <ThemeToggle />
     </header>
     <main className="flex-1 w-full max-w-3xl mx-auto p-8 md:p-12 overflow-y-auto">
       <div className="flex flex-col gap-4 pb-20">

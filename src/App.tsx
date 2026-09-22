@@ -12,6 +12,7 @@ import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X,
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
 import { RoutingContext } from './orthogonalRouter';
+import { ThemeToggle } from './ThemeToggle';
 
 import { useHistory } from './useHistory';
 
@@ -432,59 +433,60 @@ export default function DFDSimulator({ user }: { user: any }) {
 
   return (
     <div className="h-screen w-screen flex flex-col bg-canvas text-ink font-sans overflow-hidden border border-line">
-       <header className="flex items-center justify-between px-6 py-2 border-b-2 border-line bg-surface z-10">
-          <div className="flex items-baseline gap-3">
-             <h1 className="text-3xl font-serif font-black italic leading-none">DFD Master.</h1>
-             <span className="text-sm font-bold tracking-[0.2em] uppercase text-ink">A/L ICT SYLLABUS ({SCENARIOS.length} QUESTIONS)</span>
+       <header className="flex items-center justify-between px-4 sm:px-6 py-2 border-b-2 border-line bg-surface z-10 gap-3 min-w-0">
+          <div className="flex items-baseline gap-2 xl:gap-3 shrink-0">
+             <h1 className="text-2xl sm:text-3xl font-serif font-black italic leading-none whitespace-nowrap">DFD Master.</h1>
+             <span className="text-xs font-bold tracking-[0.15em] uppercase text-ink hidden lg:inline">A/L ICT SYLLABUS ({SCENARIOS.length} QUESTIONS)</span>
           </div>
 
-          <div className="flex items-center gap-2">
-             <button onClick={prevScenario} className="p-2 border-2 border-line bg-surface hover:bg-canvas transition-colors" title="Previous Question">
+          <div className="flex items-center gap-1.5 shrink-0 mx-1">
+             <button onClick={prevScenario} className="p-1.5 sm:p-2 border-2 border-line bg-surface hover:bg-canvas transition-colors shrink-0" title="Previous Question">
                 <ChevronLeft size={16} />
              </button>
-             <button onClick={() => setShowQuestionModal(true)} className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-sm font-bold uppercase tracking-wider hover:bg-canvas flex items-center gap-2">
+             <button onClick={() => setShowQuestionModal(true)} className="px-2.5 sm:px-3 py-1 sm:py-1.5 border-2 border-line bg-surface text-ink text-xs sm:text-sm font-bold uppercase tracking-wider hover:bg-canvas flex items-center gap-1.5 shrink-0 whitespace-nowrap">
                 <Search size={14} />
                 <span>Q {scenarioIndex + 1} of {SCENARIOS.length}</span>
              </button>
-             <button onClick={nextScenario} className="p-2 border-2 border-line bg-surface hover:bg-canvas transition-colors" title="Next Question">
+             <button onClick={nextScenario} className="p-1.5 sm:p-2 border-2 border-line bg-surface hover:bg-canvas transition-colors shrink-0" title="Next Question">
                 <ChevronRight size={16} />
              </button>
           </div>
 
-          <div className="flex gap-2 items-center">
-             <Link to="/leaderboard" className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-sm font-bold uppercase tracking-widest hover:bg-canvas transition-colors flex items-center gap-2">
-                <Trophy size={14} /> Leaders
+          <div className="flex gap-1.5 items-center shrink-0">
+             <Link to="/leaderboard" className="px-2.5 py-1 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-wider hover:bg-canvas transition-colors flex items-center gap-1.5 shrink-0" title="Hall of Fame Leaderboard">
+                <Trophy size={14} /> <span className="hidden xl:inline">Leaders</span>
              </Link>
-             <Link to="/profile" className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-sm font-bold uppercase tracking-widest hover:bg-canvas transition-colors flex items-center gap-2">
-                <User size={14} /> Profile
+             <Link to="/profile" className="px-2.5 py-1 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-wider hover:bg-canvas transition-colors flex items-center gap-1.5 shrink-0" title="Student Profile">
+                <User size={14} /> <span className="hidden xl:inline">Profile</span>
              </Link>
-             <div className="w-px bg-muted mx-1 h-4"></div>
-             <button onClick={randomScenario} className="px-3 py-1.5 border-2 border-transparent text-ink text-sm font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
+             <div className="w-px bg-line mx-0.5 h-4 shrink-0"></div>
+             <button onClick={randomScenario} className="px-2.5 py-1 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-wider hover:bg-canvas transition-colors shrink-0">
                 Random Q
              </button>
              
-             <button onClick={onLayout} className="p-2 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Auto-layout">
+             <button onClick={onLayout} className="p-1.5 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors shrink-0" title="Auto-layout">
                 <LayoutGrid size={14} strokeWidth={3} />
              </button>
              <button 
                 onClick={() => setAutoRouteEnabled(prev => !prev)} 
-                className={`p-2 border-2 border-line ${autoRouteEnabled ? 'bg-ink text-canvas' : 'bg-surface text-ink hover:bg-canvas'} transition-colors`} 
+                className={`p-1.5 border-2 border-line ${autoRouteEnabled ? 'bg-ink text-canvas' : 'bg-surface text-ink hover:bg-canvas'} transition-colors shrink-0`} 
                 title={autoRouteEnabled ? "Orthogonal Routing: ON (Auto-avoids obstacles when nodes are dragged)" : "Orthogonal Routing: MANUAL (Shows suggested clear paths on conflict)"}
              >
                 <Route size={14} strokeWidth={3} />
              </button>
-             <button onClick={() => setShowResetConfirm(true)} className="p-2 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Reset Canvas">
+             <button onClick={() => setShowResetConfirm(true)} className="p-1.5 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors shrink-0" title="Reset Canvas">
                 <Trash2 size={14} strokeWidth={3} />
              </button>
-             <button onClick={handleUndo} disabled={!canUndo} className="p-2 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors" title="Undo">
+             <button onClick={handleUndo} disabled={!canUndo} className="p-1.5 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors shrink-0" title="Undo">
                 <Undo size={14} strokeWidth={3} />
              </button>
-             <button onClick={handleRedo} disabled={!canRedo} className="p-2 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors" title="Redo">
+             <button onClick={handleRedo} disabled={!canRedo} className="p-1.5 border-2 border-line bg-surface text-ink disabled:opacity-50 disabled:cursor-not-allowed hover:bg-canvas transition-colors shrink-0" title="Redo">
                 <Redo size={14} strokeWidth={3} />
              </button>
-             <button onClick={() => setShowCheatSheet(true)} className="px-3 py-1.5 border-2 border-line bg-surface text-ink text-sm font-bold uppercase tracking-widest hover:bg-canvas transition-colors">
+             <button onClick={() => setShowCheatSheet(true)} className="px-2.5 py-1 border-2 border-line bg-surface text-ink text-xs font-bold uppercase tracking-wider hover:bg-canvas transition-colors shrink-0">
                 Rules
              </button>
+             <ThemeToggle />
           </div>
        </header>
 

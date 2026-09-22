@@ -3,6 +3,7 @@ import { SCENARIOS, Scenario } from './scenarios';
 import { Trophy, ChevronRight, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
+import { ThemeToggle } from './ThemeToggle';
 
 export function MobileMCQ({ user }: { user: any }) {
   const [scenarioIndex, setScenarioIndex] = useState(0);
@@ -67,7 +68,8 @@ export function MobileMCQ({ user }: { user: any }) {
           <h1 className="text-2xl font-serif font-black italic leading-none">DFD Master</h1>
           <span className="text-sm font-bold tracking-[0.1em] uppercase text-ink">Mobile Edition</span>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+           <ThemeToggle />
            <Link to="/leaderboard" className="p-2 border-2 border-line hover:bg-canvas">
              <Trophy size={16} />
            </Link>

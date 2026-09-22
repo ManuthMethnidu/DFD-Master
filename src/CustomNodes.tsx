@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Handle, Position, NodeResizer, useReactFlow, useNodes, BaseEdge, EdgeLabelRenderer, getSmoothStepPath } from 'reactflow';
-import { X } from 'lucide-react';
+import { X, Route, RouteOff } from 'lucide-react';
+import { computeOrthogonalDetourPath, getNodeBoundingBox, useRoutingContext } from './orthogonalRouter';
 
 const DeleteButton = ({ id }: { id: string }) => {
   const { setNodes, setEdges } = useReactFlow();
@@ -147,6 +148,8 @@ export const NoteNode = ({ data, id, selected }: any) => {
 
 export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, style = {}, markerEnd, data, selected, animated }: any) => {
   const { setEdges, getNode, getEdges } = useReactFlow();
+  const allNodes = useNodes();
+  const { autoRouteEnabled, showSuggestions } = useRoutingContext();
   const edges = getEdges();
   
   // Check for bidirectional or duplicate edges
@@ -154,11 +157,40 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
   const duplicateEdges = edges.filter(e => e.source === source && e.target === target);
   const edgeIndex = duplicateEdges.findIndex(e => e.id === id);
   
-  let edgePath, labelX, labelY;
   const path = getSmoothStepPath({ sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, borderRadius: 0 });
-  edgePath = path[0];
-  labelX = path[1];
-  labelY = path[2];
+  const defaultPath = path[0];
+  const defaultLabelX = path[1];
+  const defaultLabelY = path[2];
+
+  // Calculate obstacle bounding boxes for other nodes
+  const obstacleBoxes = useMemo(() => {
+    return allNodes
+      .filter(n => n.id !== source && n.id !== target)
+      .map(n => getNodeBoundingBox(n));
+  }, [allNodes, source, target]);
+
+  // Compute orthogonal detour suggestions
+  const routing = useMemo(() => {
+    return computeOrthogonalDetourPath({
+      sourceX,
+      sourceY,
+      sourcePosition,
+      targetX,
+      targetY,
+      targetPosition,
+      defaultPath,
+      defaultLabelX,
+      defaultLabelY,
+      obstacles: obstacleBoxes,
+    });
+  }, [sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, defaultPath, defaultLabelX, defaultLabelY, obstacleBoxes]);
+
+  // Determine whether to use suggested detour route
+  const shouldUseDetour = routing.hasConflict && (data?.useSuggestedRoute ?? autoRouteEnabled);
+
+  let edgePath = shouldUseDetour ? routing.path : defaultPath;
+  let labelX = shouldUseDetour ? routing.labelX : defaultLabelX;
+  let labelY = shouldUseDetour ? routing.labelY : defaultLabelY;
 
   if (isBidirectional || duplicateEdges.length > 1) {
     const offset = (edgeIndex * 20) + (isBidirectional && source > target ? 30 : 0);
@@ -176,6 +208,17 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
 
   return (
     <>
+      {/* If an obstacle is detected and direct path is active, display the suggested detour path as a clear dashed preview */}
+      {!shouldUseDetour && routing.hasConflict && showSuggestions && (
+        <path
+          d={routing.suggestedPath}
+          fill="none"
+          stroke="var(--color-border)"
+          strokeWidth={2}
+          strokeDasharray="4 4"
+          className="opacity-70 pointer-events-none"
+        />
+      )}
       <BaseEdge path={edgePath} markerEnd={markerEnd} style={{ ...style, stroke: strokeColor, strokeWidth: selected ? 3 : 2, strokeDasharray }}  />
       <EdgeLabelRenderer>
         <div
@@ -185,13 +228,14 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
             pointerEvents: 'all',
             paddingBottom: '6px'
           }}
-          className="nodrag nopan"
+          className="nodrag nopan flex flex-col items-center"
         >
           <div className="relative">
              {selected && (
                <button 
                  onClick={() => setEdges(eds => eds.filter(e => e.id !== id))}
                  className="absolute -top-3 -right-3 w-5 h-5 bg-surface border border-line rounded-full flex items-center justify-center hover:bg-ink hover:text-canvas text-ink z-50 shadow-[1px_1px_0px_0px_rgba(var(--shadow-rgb),1)]"
+                 title="Delete Edge"
                >
                  <X size={10} strokeWidth={3} />
                </button>
@@ -204,6 +248,42 @@ export const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targ
               placeholder="Flow Label"
             />
           </div>
+
+          {/* Suggestion pill when edge is near/colliding with an obstacle */}
+          {routing.hasConflict && (
+            <div className="mt-1 flex items-center gap-1">
+              {!shouldUseDetour ? (
+                <button
+                  onClick={() => {
+                    setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, useSuggestedRoute: true } } : e));
+                  }}
+                  className="px-2 py-0.5 bg-surface border-2 border-line text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] hover:bg-canvas text-ink transition-colors"
+                  title={`Obstacle detected: ${routing.conflictingObstacles.map(o => o.label).join(', ')}. Click to snap edge around it.`}
+                >
+                  <Route size={10} />
+                  <span>Snap Clear Path</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <span
+                    className="px-1.5 py-0.5 bg-canvas border border-line text-[9px] font-mono text-ink flex items-center gap-1"
+                    title={`Routing clear of: ${routing.conflictingObstacles.map(o => o.label).join(', ')}`}
+                  >
+                    <Route size={9} /> Clear Path
+                  </span>
+                  <button
+                    onClick={() => {
+                      setEdges(eds => eds.map(e => e.id === id ? { ...e, data: { ...e.data, useSuggestedRoute: false } } : e));
+                    }}
+                    className="px-1 py-0.5 bg-surface border border-line text-[9px] font-mono text-muted hover:text-ink hover:bg-canvas"
+                    title="Switch back to direct line"
+                  >
+                    <RouteOff size={9} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </EdgeLabelRenderer>
     </>

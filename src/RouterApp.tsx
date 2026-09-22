@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider, createOrUpdateUserProfile, getUserProfile, getLeaderboard } from './firebase';
-import { User, LogOut, Award, Trophy, ArrowLeft, Info, X } from 'lucide-react';
+import { auth, googleProvider, isFirebaseConfigured, createOrUpdateUserProfile, getUserProfile, getLeaderboard, checkDatabaseConnection, DatabaseStatus } from './firebase';
+import { User, LogOut, Award, Trophy, ArrowLeft, Info, X, Database, RefreshCw } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import ResponsiveApp from './ResponsiveApp';
 import { TermsOfService, PrivacyPolicy } from './LegalPages';
@@ -12,14 +12,35 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        await createOrUpdateUserProfile(currentUser);
+    if (!isFirebaseConfigured || !auth) {
+      let localUser: any = null;
+      try {
+        const stored = localStorage.getItem('dfd_local_user');
+        if (stored) localUser = JSON.parse(stored);
+      } catch (e) {}
+      if (!localUser) {
+        localUser = { uid: 'local_guest', displayName: 'Student Guest', email: 'guest@al-ict.lk' };
+        localStorage.setItem('dfd_local_user', JSON.stringify(localUser));
       }
-      setUser(currentUser);
+      createOrUpdateUserProfile(localUser);
+      setUser(localUser);
       setLoading(false);
-    });
-    return unsubscribe;
+      return;
+    }
+
+    try {
+      const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+        if (currentUser) {
+          await createOrUpdateUserProfile(currentUser);
+        }
+        setUser(currentUser);
+        setLoading(false);
+      });
+      return unsubscribe;
+    } catch (err) {
+      console.warn('Firebase onAuthStateChanged error:', err);
+      setLoading(false);
+    }
   }, []);
 
   if (loading) {
@@ -42,6 +63,10 @@ function Login() {
   const [errorMsg, setErrorMsg] = useState('');
 
   const handleLogin = async () => {
+    if (!isFirebaseConfigured || !auth || !googleProvider) {
+      setErrorMsg('Firebase API Key is not configured yet. The app is currently running in offline local mode with local progress tracking.');
+      return;
+    }
     try {
       setErrorMsg('');
       await signInWithPopup(auth, googleProvider);
@@ -100,7 +125,9 @@ function Profile({ user }: { user: any }) {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      if (isFirebaseConfigured && auth) {
+        await signOut(auth);
+      }
       // Strict Security Requirement: Clear all client-side session data
       localStorage.clear();
       sessionStorage.clear();
@@ -110,6 +137,7 @@ function Profile({ user }: { user: any }) {
       navigate('/');
     } catch (error) {
       console.error('Logout error:', error);
+      navigate('/');
     }
   };
 
@@ -178,9 +206,29 @@ function Leaderboard() {
   const [type, setType] = useState<'desktop' | 'mobile'>('desktop');
   const [leaders, setLeaders] = useState<any[]>([]);
   const [showInfo, setShowInfo] = useState(false);
+  const [dbStatus, setDbStatus] = useState<DatabaseStatus | null>(null);
+  const [isCheckingDb, setIsCheckingDb] = useState(false);
   
+  const refreshDbStatus = async () => {
+    setIsCheckingDb(true);
+    try {
+      const status = await checkDatabaseConnection();
+      setDbStatus(status);
+    } catch {
+      setDbStatus({
+        isConnected: false,
+        provider: 'local',
+        label: 'Local Storage',
+        detail: 'Operating offline'
+      });
+    } finally {
+      setIsCheckingDb(false);
+    }
+  };
+
   useEffect(() => {
     getLeaderboard(type).then(data => data && setLeaders(data));
+    refreshDbStatus();
   }, [type]);
 
   const getRank = (score: number) => {
@@ -217,18 +265,56 @@ function Leaderboard() {
         </div>
         
         <div className="bg-surface border-4 border-line p-8 md:p-12 shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)]">
-          <div className="flex items-center gap-4 mb-12 border-b-4 border-line pb-6">
-            <Trophy size={48} className="text-ink" />
-            <div>
-              <h1 className="text-5xl md:text-5xl font-serif font-black italic">Hall of Fame</h1>
-              <p className="text-base font-mono text-ink uppercase tracking-widest mt-2">Top 10 {type === 'desktop' ? 'DFD Masters' : 'Mobile Analysts'}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b-4 border-line pb-6">
+            <div className="flex items-center gap-4">
+              <Trophy size={48} className="text-ink shrink-0" />
+              <div>
+                <h1 className="text-4xl md:text-5xl font-serif font-black italic">Hall of Fame</h1>
+                <p className="text-base font-mono text-ink uppercase tracking-widest mt-1">Top 10 {type === 'desktop' ? 'DFD Masters' : 'Mobile Analysts'}</p>
+              </div>
+            </div>
+
+            {/* Live Database Connection Status Pill */}
+            <div className="flex items-center gap-2">
+              <div 
+                className={`flex items-center gap-2 px-3 py-2 border-2 text-xs font-mono font-bold uppercase tracking-wider ${
+                  dbStatus?.isConnected 
+                    ? 'bg-canvas text-ink border-line shadow-[3px_3px_0px_0px_rgba(var(--shadow-rgb),1)]' 
+                    : 'bg-surface text-ink border-line border-dashed'
+                }`}
+                title={dbStatus?.detail || ''}
+              >
+                <span className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${dbStatus?.isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                <span className="truncate max-w-[200px]">
+                  {dbStatus ? dbStatus.label : 'Checking DB...'}
+                </span>
+              </div>
+              <button 
+                onClick={refreshDbStatus} 
+                disabled={isCheckingDb}
+                className="p-2 border-2 border-line bg-surface hover:bg-canvas text-ink transition-colors disabled:opacity-50"
+                title="Ping & refresh database connection"
+              >
+                <RefreshCw size={14} className={isCheckingDb ? 'animate-spin' : ''} />
+              </button>
             </div>
           </div>
+
+          {/* Context Banner */}
+          {!dbStatus?.isConnected && (
+            <div className="mb-6 p-4 bg-canvas border-2 border-line text-xs font-mono flex items-start gap-3">
+              <Database size={16} className="text-ink shrink-0 mt-0.5" />
+              <div className="leading-relaxed">
+                <span className="font-bold uppercase tracking-wider block mb-0.5">Database Status: Offline / Local Mode</span>
+                <span>The leaderboard is displaying scores earned on this device. Live global rankings across all students require a live cloud database connection.</span>
+              </div>
+            </div>
+          )}
           
           <div className="space-y-4">
             {leaders.length > 0 ? (
               leaders.map((leader, idx) => (
-                <div key={leader.uid} className={`flex items-center justify-between p-4 md:p-6 border-2 border-line ${idx === 0 ? 'bg-surface border-4 font-bold shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] -translate-y-1 -translate-x-1' : 'bg-canvas'}`}>
+                <div key={leader.uid || `leader-${idx}`} className={`flex items-center justify-between p-4 md:p-6 border-2 border-line ${idx === 0 ? 'bg-surface border-4 font-bold shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] -translate-y-1 -translate-x-1' : 'bg-canvas'}`}>
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
                     <span className="text-3xl md:text-4xl font-serif font-black italic text-muted">#{idx + 1}</span>
                     <div className="flex items-center gap-4">
@@ -255,7 +341,7 @@ function Leaderboard() {
               ))
             ) : (
               <div className="text-center p-12 border-2 border-line border-dashed text-muted font-mono uppercase tracking-widest">
-                No scores recorded yet
+                No scores recorded yet. Complete diagrams or questions to earn a spot on the Hall of Fame!
               </div>
             )}
           </div>

@@ -8,9 +8,10 @@ import ReactFlow, { addEdge, useNodesState, useEdgesState, Controls, Background,
 import 'reactflow/dist/style.css';
 import { SCENARIOS, Scenario } from './scenarios';
 import { EntityNode, ContextProcessNode, DetailedProcessNode, ProcessNode, DataStoreNode, NoteNode, CustomEdge } from './CustomNodes';
-import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy, StickyNote, Undo, Redo, Eye, LayoutGrid, Trash2 } from 'lucide-react';
+import { Info, Play, CheckCircle, RefreshCw, AlertTriangle, BookOpen, Search, X, ChevronLeft, ChevronRight, ListFilter, User, Trophy, StickyNote, Undo, Redo, Eye, LayoutGrid, Trash2, Route } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { updateUserScore } from './firebase';
+import { RoutingContext } from './orthogonalRouter';
 
 import { useHistory } from './useHistory';
 
@@ -50,6 +51,8 @@ export default function DFDSimulator({ user }: { user: any }) {
   const [hintsRevealed, setHintsRevealed] = useState(false);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [isExpectedExpanded, setIsExpectedExpanded] = useState(false);
+  const [autoRouteEnabled, setAutoRouteEnabled] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(true);
   const skipNextSnapshot = useRef(false);
   const { takeSnapshot, undo, redo, canUndo, canRedo, clearHistory } = useHistory([], []);
 
@@ -228,6 +231,16 @@ export default function DFDSimulator({ user }: { user: any }) {
     },
     [reactFlowInstance, setNodes, scenario.level]
   );
+
+  const handleDragStart = useCallback((e: React.DragEvent, nodeType: string) => {
+    e.dataTransfer.setData('application/reactflow', nodeType);
+    e.dataTransfer.effectAllowed = 'move';
+    const shapeEl = e.currentTarget.querySelector('.drag-shape') as HTMLElement;
+    if (shapeEl) {
+      const rect = shapeEl.getBoundingClientRect();
+      e.dataTransfer.setDragImage(shapeEl, rect.width / 2, rect.height / 2);
+    }
+  }, []);
 
   const evaluateDiagram = () => {
     let currentScore = 100;
@@ -453,6 +466,13 @@ export default function DFDSimulator({ user }: { user: any }) {
              <button onClick={onLayout} className="p-2 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Auto-layout">
                 <LayoutGrid size={14} strokeWidth={3} />
              </button>
+             <button 
+                onClick={() => setAutoRouteEnabled(prev => !prev)} 
+                className={`p-2 border-2 border-line ${autoRouteEnabled ? 'bg-ink text-canvas' : 'bg-surface text-ink hover:bg-canvas'} transition-colors`} 
+                title={autoRouteEnabled ? "Orthogonal Routing: ON (Auto-avoids obstacles when nodes are dragged)" : "Orthogonal Routing: MANUAL (Shows suggested clear paths on conflict)"}
+             >
+                <Route size={14} strokeWidth={3} />
+             </button>
              <button onClick={() => setShowResetConfirm(true)} className="p-2 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Reset Canvas">
                 <Trash2 size={14} strokeWidth={3} />
              </button>
@@ -468,6 +488,7 @@ export default function DFDSimulator({ user }: { user: any }) {
           </div>
        </header>
 
+       <RoutingContext.Provider value={{ autoRouteEnabled, setAutoRouteEnabled, showSuggestions, setShowSuggestions }}>
        <div className="flex-1 flex overflow-hidden">
           <aside className="w-[340px] bg-surface border-r-2 border-line flex flex-col z-10 overflow-hidden shrink-0">
              <div className="p-5 flex-1 min-h-0 flex flex-col overflow-y-auto" style={{ touchAction: "auto", overscrollBehavior: "contain" }}>
@@ -493,7 +514,7 @@ export default function DFDSimulator({ user }: { user: any }) {
              </div>
           </aside>
           
-          <main className="flex-1 relative flex bg-[#F2F2F0] bg-[radial-gradient(#d1d1d1_1px,transparent_1px)] [background-size:20px_20px]" ref={reactFlowWrapper}>
+          <main className="flex-1 relative flex diagram-grid bg-[#F2F2F0] dark:bg-black bg-[radial-gradient(#d1d1d1_1px,transparent_1px)] dark:bg-[radial-gradient(#262626_1px,transparent_1px)] [background-size:20px_20px]" ref={reactFlowWrapper}>
              <div className="absolute top-4 left-4 z-10 pointer-events-none flex gap-2">
                <h3 className="text-sm font-bold font-mono bg-surface px-2 py-1 border border-line shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)] text-ink">
                  {scenario.level.toUpperCase()}
@@ -558,53 +579,77 @@ export default function DFDSimulator({ user }: { user: any }) {
                </div>
              )}
              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-surface border-2 border-line p-2 flex gap-4 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-10">
-               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'entity'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1">
                  <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
                    <strong className="block mb-1">External Entity</strong>
                    A person, organization, or external system that sends data to or receives data from the system.
                  </div>
-                 <div className="w-10 h-6 border-2 border-line rounded-[50%] bg-surface"></div>
-                 <span className="text-[8px] font-bold tracking-widest uppercase">Entity</span>
+                 <div 
+                   className="flex flex-col items-center gap-1 cursor-grab" 
+                   draggable 
+                   onDragStart={(e) => handleDragStart(e, "entity")}
+                 >
+                   <div className="drag-shape w-10 h-6 border-2 border-line rounded-[50%] bg-surface"></div>
+                   <span className="text-[8px] font-bold tracking-widest uppercase">Entity</span>
+                 </div>
                </div>
                <div className="w-[1px] bg-accent h-10 self-center"></div>
-               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'process'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1">
                  <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
                    <strong className="block mb-1">Process</strong>
                    Transforms incoming data flows into outgoing data flows. Represents a specific function or action.
                  </div>
-                 {scenario.level === 'Context Diagram' ? (
-                   <div className="w-10 h-7 border-2 border-line bg-surface"></div>
-                 ) : (
-                   <div className="w-10 h-7 border-2 border-line bg-surface flex flex-col">
-                     <div className="flex h-2.5 border-b-2 border-line">
-                       <div className="w-3 border-r-2 border-line shrink-0"></div>
+                 <div 
+                   className="flex flex-col items-center gap-1 cursor-grab" 
+                   draggable 
+                   onDragStart={(e) => handleDragStart(e, "process")}
+                 >
+                   {scenario.level === "Context Diagram" ? (
+                     <div className="drag-shape w-10 h-7 border-2 border-line bg-surface"></div>
+                   ) : (
+                     <div className="drag-shape w-10 h-7 border-2 border-line bg-surface flex flex-col">
+                       <div className="flex h-2.5 border-b-2 border-line">
+                         <div className="w-3 border-r-2 border-line shrink-0"></div>
+                         <div className="flex-1"></div>
+                       </div>
                        <div className="flex-1"></div>
                      </div>
-                     <div className="flex-1"></div>
-                   </div>
-                 )}
-                 <span className="text-[8px] font-bold tracking-widest uppercase">Process</span>
+                   )}
+                   <span className="text-[8px] font-bold tracking-widest uppercase">Process</span>
+                 </div>
                </div>
                <div className="w-[1px] bg-accent h-10 self-center"></div>
-               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'dataStore'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1">
                  <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
                    <strong className="block mb-1">Data Store</strong>
                    A repository where data is kept for later use (e.g., database, file cabinet, logbook).
                  </div>
-                 <div className="w-10 h-7 border-y-2 border-l-2 border-r-0 border-line bg-surface flex">
-    <div className="w-3 border-r-2 border-line h-full"></div>
-    <div className="flex-1"></div>
-  </div>
-                 <span className="text-[8px] font-bold tracking-widest uppercase">Store</span>
+                 <div 
+                   className="flex flex-col items-center gap-1 cursor-grab" 
+                   draggable 
+                   onDragStart={(e) => handleDragStart(e, "dataStore")}
+                 >
+                   <div className="drag-shape w-10 h-7 border-y-2 border-l-2 border-r-0 border-line bg-surface flex">
+                     <div className="w-3 border-r-2 border-line h-full"></div>
+                     <div className="flex-1"></div>
+                   </div>
+                   <span className="text-[8px] font-bold tracking-widest uppercase">Store</span>
+                 </div>
                </div>
                <div className="w-[1px] bg-accent h-10 self-center"></div>
-               <div className="group relative flex flex-col items-center gap-1 cursor-grab" onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', 'note'); e.dataTransfer.effectAllowed = 'move'; }} draggable>
+               <div className="group relative flex flex-col items-center gap-1">
                  <div className="absolute bottom-full mb-3 hidden group-hover:block w-48 bg-surface border-2 border-ink text-ink text-[10px] p-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] z-50 text-left font-mono pointer-events-none">
                    <strong className="block mb-1">Sticky Note</strong>
                    Add custom annotations, labels, or extra details anywhere on your diagram without affecting marking.
                  </div>
-                 <div className="w-8 h-8 bg-yellow-200 border border-yellow-400 rotate-[-2deg]"></div>
-                 <span className="text-[8px] font-bold tracking-widest uppercase">Note</span>
+                 <div 
+                   className="flex flex-col items-center gap-1 cursor-grab" 
+                   draggable 
+                   onDragStart={(e) => handleDragStart(e, "note")}
+                 >
+                   <div className="drag-shape w-8 h-8 bg-yellow-200 border border-yellow-400 rotate-[-2deg]"></div>
+                   <span className="text-[8px] font-bold tracking-widest uppercase">Note</span>
+                 </div>
                </div>
              </div>
           </main>
@@ -647,6 +692,7 @@ export default function DFDSimulator({ user }: { user: any }) {
           </aside>
        )}
        </div>
+       </RoutingContext.Provider>
 
        {/* Question Selector Modal (200+ Scenarios Browser) */}
        {showQuestionModal && (

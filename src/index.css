@@ -25,9 +25,9 @@
     --color-accent: #000000;
     --color-accent-text: #ffffff;
     --shadow-rgb: 0, 0, 0;
+    --bg-grid: #F2F2F0;
+    --color-grid-dot: #d1d1d1;
   }
-
-  
 }
 
 html, body, #root {
@@ -51,6 +51,28 @@ html, body, #root {
   }
 }
 
+.diagram-grid {
+  background-color: var(--bg-grid);
+  background-image: radial-gradient(var(--color-grid-dot) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.dark .react-flow__controls {
+  background-color: #1a1d24;
+  border: 2px solid #374151;
+  box-shadow: 4px 4px 0px 0px rgba(255, 255, 255, 1);
+}
+
+.dark .react-flow__controls-button {
+  background-color: #1a1d24;
+  border-bottom: 1px solid #374151;
+  fill: #f3f4f6;
+}
+
+.dark .react-flow__controls-button:hover {
+  background-color: #0f1115;
+}
+
 @layer base {
   .dark {
     --bg-canvas: #0f1115;
@@ -61,6 +83,8 @@ html, body, #root {
     --color-accent: #f3f4f6;
     --color-accent-text: #0f1115;
     --shadow-rgb: 255, 255, 255;
+    --bg-grid: #000000;
+    --color-grid-dot: #262626;
   }
 }
 

@@ -105,7 +105,7 @@ export function generateScenarios(totalCount: number, startId: number): Scenario
          id: idCounter++,
          title: `${domain} Flow (Q${idCounter-1})`,
          category: domain,
-         level: level,
+         level: level as 'Context Diagram' | 'Level 1 DFD' | 'Level 2 DFD',
          difficulty: difficulty as 'Easy' | 'Medium' | 'Hard' | 'Expert',
          description: descSentences.join(' '),
          ideal: { nodes, edges: edges.map(e => ({ source: e.sourceLabel, target: e.targetLabel, label: e.label })) }

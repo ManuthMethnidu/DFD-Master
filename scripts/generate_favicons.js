@@ -5,13 +5,13 @@ import { execSync } from 'child_process';
 
 // Optically balanced, high-fidelity DFD icon
 // Center: (256, 256). Radius: 98. Stroke: 24.
-// Fits completely within the 80% maskable safe circle (radius 204.8px)
-function getSvg(color = '#ffffff', bgColor = '#000000') {
+function getSvg(color = '#ffffff', bgColor = '#000000', isMaskable = false) {
   const bg = bgColor ? `<rect width="512" height="512" fill="${bgColor}" />` : '';
+  const transform = isMaskable ? 'transform="translate(64, 64) scale(0.75)"' : '';
   
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" shape-rendering="geometricPrecision">
   ${bg}
-  <g fill="${color}" stroke="${color}">
+  <g fill="${color}" stroke="${color}" ${transform}>
     <!-- Left Input Arrow: Stem x=64..124, Head x=124..180 -->
     <rect x="64" y="244" width="60" height="24" stroke="none" fill="${color}" />
     <polygon points="124,212 180,256 124,300" stroke="none" fill="${color}" />
@@ -36,7 +36,7 @@ async function run() {
   });
 
   // 1. favicon.svg (Black icon on transparent for light browser tabs)
-  const faviconSvg = getSvg('#000000', null);
+  const faviconSvg = getSvg('#000000', null, false);
   fs.writeFileSync(path.join(publicDir, 'favicon.svg'), faviconSvg);
   fs.writeFileSync(path.join(distDir, 'favicon.svg'), faviconSvg);
 
@@ -52,7 +52,7 @@ async function run() {
     .toFile(path.join(distDir, 'favicon-96x96.png'));
 
   // 3. apple-touch-icon.png (Solid black background, white icon, NO alpha channel for iOS home screen)
-  const manifestSvg = getSvg('#ffffff', '#000000');
+  const manifestSvg = getSvg('#ffffff', '#000000', false);
   const svgBufferWhite = Buffer.from(manifestSvg);
 
   await sharp(svgBufferWhite, { density: 300 })
@@ -78,7 +78,48 @@ async function run() {
     .png()
     .toFile(path.join(distDir, 'apple-touch-icon-512x512.png'));
 
-  // 4. web-app-manifest-192x192.png
+  // 4. Standard PWA Icons (Clean, unpolluted URLs: pwa-192x192.png and pwa-512x512.png)
+  await sharp(svgBufferWhite, { density: 300 })
+    .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(publicDir, 'pwa-192x192.png'));
+  await sharp(svgBufferWhite, { density: 300 })
+    .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(distDir, 'pwa-192x192.png'));
+
+  await sharp(svgBufferWhite, { density: 300 })
+    .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(publicDir, 'pwa-512x512.png'));
+  await sharp(svgBufferWhite, { density: 300 })
+    .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(distDir, 'pwa-512x512.png'));
+
+  // 5. Maskable PWA Icons (Android safe-zone: 15% outer padding for circular/squircle system masks)
+  const maskableSvg = getSvg('#ffffff', '#000000', true);
+  const svgBufferMaskable = Buffer.from(maskableSvg);
+
+  await sharp(svgBufferMaskable, { density: 300 })
+    .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(publicDir, 'pwa-maskable-192x192.png'));
+  await sharp(svgBufferMaskable, { density: 300 })
+    .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(distDir, 'pwa-maskable-192x192.png'));
+
+  await sharp(svgBufferMaskable, { density: 300 })
+    .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(publicDir, 'pwa-maskable-512x512.png'));
+  await sharp(svgBufferMaskable, { density: 300 })
+    .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
+    .png()
+    .toFile(path.join(distDir, 'pwa-maskable-512x512.png'));
+
+  // 6. Backwards compatibility icons
   await sharp(svgBufferWhite, { density: 300 })
     .resize(192, 192, { kernel: sharp.kernel.lanczos3 })
     .png()
@@ -88,7 +129,6 @@ async function run() {
     .png()
     .toFile(path.join(distDir, 'web-app-manifest-192x192.png'));
 
-  // 5. web-app-manifest-512x512.png
   await sharp(svgBufferWhite, { density: 300 })
     .resize(512, 512, { kernel: sharp.kernel.lanczos3 })
     .png()
@@ -98,7 +138,6 @@ async function run() {
     .png()
     .toFile(path.join(distDir, 'web-app-manifest-512x512.png'));
 
-  // 6. web-app-manifest-1024x1024.png (Ultra high-res for 4K / tablet / desktop PWA installs)
   await sharp(svgBufferWhite, { density: 300 })
     .resize(1024, 1024, { kernel: sharp.kernel.lanczos3 })
     .png()
@@ -123,7 +162,7 @@ async function run() {
   }
   if (fs.existsSync(fav48Path)) fs.unlinkSync(fav48Path);
 
-  // 8. site.webmanifest with explicit any AND maskable purposes across all resolutions
+  // 8. site.webmanifest with standard PWA icons and separate any and maskable purposes
   const manifestContent = JSON.stringify({
     "id": "/",
     "name": "DFD Master",
@@ -137,52 +176,34 @@ async function run() {
     "background_color": "#F9F9FB",
     "icons": [
       {
-        "src": "/apple-touch-icon-512x512.png",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "any"
-      },
-      {
-        "src": "/apple-touch-icon-512x512.png",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "maskable"
-      },
-      {
-        "src": "/web-app-manifest-512x512.png",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "any"
-      },
-      {
-        "src": "/web-app-manifest-512x512.png",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "maskable"
-      },
-      {
-        "src": "/web-app-manifest-192x192.png",
+        "src": "/pwa-192x192.png",
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "any"
       },
       {
-        "src": "/web-app-manifest-192x192.png",
+        "src": "/pwa-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/pwa-maskable-192x192.png",
         "sizes": "192x192",
         "type": "image/png",
         "purpose": "maskable"
       },
       {
-        "src": "/web-app-manifest-1024x1024.png",
-        "sizes": "1024x1024",
-        "type": "image/png",
-        "purpose": "any"
-      },
-      {
-        "src": "/web-app-manifest-1024x1024.png",
-        "sizes": "1024x1024",
+        "src": "/pwa-maskable-512x512.png",
+        "sizes": "512x512",
         "type": "image/png",
         "purpose": "maskable"
+      },
+      {
+        "src": "/apple-touch-icon.png",
+        "sizes": "180x180",
+        "type": "image/png",
+        "purpose": "any"
       }
     ]
   }, null, 2);

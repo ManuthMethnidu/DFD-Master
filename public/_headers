@@ -12,3 +12,11 @@
 /manifest.webmanifest
   Content-Type: application/manifest+json; charset=utf-8
   Cache-Control: no-cache, must-revalidate
+
+/pwa-*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, must-revalidate
+
+/apple-touch-icon*.png
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400, must-revalidate

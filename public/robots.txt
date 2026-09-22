@@ -6,6 +6,7 @@ Allow: /sitemap.xml
 Allow: /site.webmanifest
 Allow: /manifest.webmanifest
 Allow: /apple-touch-icon*.png
+Allow: /pwa-*.png
 Allow: /web-app-manifest*.png
 Allow: /favicon.ico
 Allow: /favicon.svg

@@ -23,15 +23,22 @@ export const isFirebaseConfigured: boolean = Boolean(
   !rawApiKey.includes('YOUR_')
 );
 
-export const firebaseConfig = localConfig || {
-  apiKey: rawApiKey,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || '(default)'
-};
+const customAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'dfd.methnidu.dpdns.org';
+
+export const firebaseConfig = localConfig
+  ? {
+      ...localConfig,
+      authDomain: customAuthDomain,
+    }
+  : {
+      apiKey: rawApiKey,
+      authDomain: customAuthDomain,
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+      appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      firestoreDatabaseId: import.meta.env.VITE_FIREBASE_DATABASE_ID || '(default)'
+    };
 
 let app: FirebaseApp | null = null;
 let dbInstance: Firestore | null = null;

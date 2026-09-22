@@ -12,6 +12,7 @@ export default defineConfig(() => {
       VitePWA({
         registerType: 'autoUpdate',
         injectRegister: 'auto',
+        manifestFilename: 'site.webmanifest',
         includeAssets: [
           'favicon.ico',
           'favicon.svg',
@@ -41,13 +42,19 @@ export default defineConfig(() => {
           orientation: 'any',
           icons: [
             {
-              src: '/web-app-manifest-512x512.png',
+              src: '/apple-touch-icon-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',
             },
             {
               src: '/apple-touch-icon-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+            {
+              src: '/web-app-manifest-512x512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any',

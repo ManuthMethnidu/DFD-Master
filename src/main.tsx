@@ -15,6 +15,20 @@ window.addEventListener('error', (e) => {
   }
 });
 
+// Ensure Service Worker is promptly registered for PWA installability
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  const register = () => {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+      // SW registration error handled
+    });
+  };
+  if (document.readyState === 'complete') {
+    register();
+  } else {
+    window.addEventListener('load', register);
+  }
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

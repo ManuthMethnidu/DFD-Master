@@ -108,62 +108,78 @@ async function run() {
     .png()
     .toFile(path.join(distDir, 'web-app-manifest-1024x1024.png'));
 
-  // 7. favicon.ico (Multi-size ICO with 16, 32, 48 via ImageMagick convert)
+  // 7. favicon.ico (Multi-size ICO with 16, 32, 48 via ImageMagick convert if available)
   const fav48Path = path.join(publicDir, 'fav48.png');
   await sharp(svgBufferBlack, { density: 300 })
     .resize(48, 48, { kernel: sharp.kernel.lanczos3 })
     .png()
     .toFile(fav48Path);
 
-  execSync(`convert ${fav48Path} -define icon:auto-resize=48,32,16 ${path.join(publicDir, 'favicon.ico')}`);
-  execSync(`cp ${path.join(publicDir, 'favicon.ico')} ${path.join(distDir, 'favicon.ico')}`);
-  fs.unlinkSync(fav48Path);
+  try {
+    execSync(`convert ${fav48Path} -define icon:auto-resize=48,32,16 ${path.join(publicDir, 'favicon.ico')}`);
+    execSync(`cp ${path.join(publicDir, 'favicon.ico')} ${path.join(distDir, 'favicon.ico')}`);
+  } catch (err) {
+    console.warn('ImageMagick convert not found or failed, preserving existing favicon.ico');
+  }
+  if (fs.existsSync(fav48Path)) fs.unlinkSync(fav48Path);
 
   // 8. site.webmanifest with explicit any AND maskable purposes across all resolutions
   const manifestContent = JSON.stringify({
     "id": "/",
     "name": "DFD Master",
     "short_name": "DFD Master",
-    "description": "Interactive Data Flow Diagram (DFD) simulator and learning tool",
+    "description": "Interactive Data Flow Diagram (DFD) simulator and learning tool for system modeling",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
     "orientation": "any",
-    "theme_color": "#000000",
-    "background_color": "#000000",
+    "theme_color": "#111111",
+    "background_color": "#F9F9FB",
     "icons": [
       {
-        "src": "/web-app-manifest-192x192.png?v=20260922c",
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "any"
-      },
-      {
-        "src": "/web-app-manifest-512x512.png?v=20260922c",
+        "src": "/apple-touch-icon-512x512.png",
         "sizes": "512x512",
         "type": "image/png",
         "purpose": "any"
       },
       {
-        "src": "/web-app-manifest-1024x1024.png?v=20260922c",
+        "src": "/apple-touch-icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+      },
+      {
+        "src": "/web-app-manifest-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/web-app-manifest-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+      },
+      {
+        "src": "/web-app-manifest-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/web-app-manifest-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "maskable"
+      },
+      {
+        "src": "/web-app-manifest-1024x1024.png",
         "sizes": "1024x1024",
         "type": "image/png",
         "purpose": "any"
       },
       {
-        "src": "/web-app-manifest-192x192.png?v=20260922c",
-        "sizes": "192x192",
-        "type": "image/png",
-        "purpose": "maskable"
-      },
-      {
-        "src": "/web-app-manifest-512x512.png?v=20260922c",
-        "sizes": "512x512",
-        "type": "image/png",
-        "purpose": "maskable"
-      },
-      {
-        "src": "/web-app-manifest-1024x1024.png?v=20260922c",
+        "src": "/web-app-manifest-1024x1024.png",
         "sizes": "1024x1024",
         "type": "image/png",
         "purpose": "maskable"
@@ -173,6 +189,8 @@ async function run() {
 
   fs.writeFileSync(path.join(publicDir, 'site.webmanifest'), manifestContent);
   fs.writeFileSync(path.join(distDir, 'site.webmanifest'), manifestContent);
+  fs.writeFileSync(path.join(publicDir, 'manifest.webmanifest'), manifestContent);
+  fs.writeFileSync(path.join(distDir, 'manifest.webmanifest'), manifestContent);
 
   console.log('All favicon and manifest assets generated successfully at ultra-high resolution!');
 }

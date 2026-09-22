@@ -43,17 +43,6 @@ export default function App() {
     }
   }, []);
 
-  const location = useLocation();
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('config', 'G-KNSJ2TB9XX', {
-        page_path: location.pathname + location.search,
-        page_title: document.title,
-      });
-    }
-  }, [location]);
-
   if (loading) {
     return <div className="h-screen w-screen flex items-center justify-center bg-canvas text-ink font-serif italic text-3xl">Loading...</div>;
   }

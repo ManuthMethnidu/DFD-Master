@@ -68,8 +68,8 @@ export function MobileMCQ({ user }: { user: any }) {
   };
 
   return (
-    <div className="h-screen bg-canvas text-ink font-sans flex flex-col">
-      <header className="p-4 border-b-2 border-line bg-surface flex justify-between items-center sticky top-0 z-10">
+    <div className="min-h-[100dvh] h-[100dvh] bg-canvas text-ink font-sans flex flex-col overflow-hidden">
+      <header className="p-4 border-b-2 border-line bg-surface flex justify-between items-center shrink-0 z-10">
         <div>
           <h1 className="text-2xl font-serif font-black italic leading-none">DFD Master</h1>
           <span className="text-sm font-bold tracking-[0.1em] uppercase text-ink">Mobile Edition</span>
@@ -77,16 +77,22 @@ export function MobileMCQ({ user }: { user: any }) {
         <div className="flex gap-2 items-center">
            <ThemeToggle />
            <SoundToggle />
-           <Link to="/leaderboard" className="p-2 border-2 border-line hover:bg-canvas">
+           <Link to="/leaderboard" className="p-2 border-2 border-line hover:bg-canvas" title="Leaderboard">
              <Trophy size={16} />
            </Link>
-           <Link to="/profile" className="p-2 border-2 border-line hover:bg-canvas">
+           <Link to="/profile" className="p-2 border-2 border-line hover:bg-canvas" title="Profile">
              <User size={16} />
            </Link>
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 p-4 flex flex-col gap-6 overflow-y-auto" style={{ touchAction: "auto", overscrollBehavior: "contain" }}>
+      <main 
+        className="flex-1 min-h-0 px-4 pt-4 flex flex-col gap-6 overflow-y-auto overscroll-y-contain"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 7rem)'
+        }}
+      >
         <div className="bg-surface border-2 border-line p-4 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)]">
           <div className="flex justify-between mb-2">
             <span className="text-sm font-bold uppercase">{scenario.level}</span>
@@ -123,22 +129,24 @@ export function MobileMCQ({ user }: { user: any }) {
           ))}
         </div>
 
-        {hasSubmitted ? (
-          <button 
-            onClick={nextScenario}
-            className="mt-auto py-4 bg-accent text-on-accent font-bold uppercase tracking-widest text-base flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)]"
-          >
-            Next Scenario <ChevronRight size={16} />
-          </button>
-        ) : (
-          <button 
-            disabled={selectedOption === null}
-            onClick={handleSubmit}
-            className="mt-auto py-4 bg-accent text-on-accent font-bold uppercase tracking-widest text-base disabled:opacity-50 disabled:cursor-not-allowed shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)]"
-          >
-            Submit Answer
-          </button>
-        )}
+        <div className="mt-auto pt-4 pb-8 shrink-0">
+          {hasSubmitted ? (
+            <button 
+              onClick={nextScenario}
+              className="w-full py-4 bg-accent text-on-accent font-bold uppercase tracking-widest text-base flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] active:translate-x-0.5 active:translate-y-0.5"
+            >
+              Next Scenario <ChevronRight size={18} />
+            </button>
+          ) : (
+            <button 
+              disabled={selectedOption === null}
+              onClick={handleSubmit}
+              className="w-full py-4 bg-accent text-on-accent font-bold uppercase tracking-widest text-base disabled:opacity-50 disabled:cursor-not-allowed shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] active:translate-x-0.5 active:translate-y-0.5"
+            >
+              Submit Answer
+            </button>
+          )}
+        </div>
       </main>
     </div>
   );

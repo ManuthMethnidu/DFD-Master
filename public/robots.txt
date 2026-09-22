@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Allow: /og.png
+Allow: /og.jpg
+Allow: /sitemap.xml
+Allow: /site.webmanifest
+Allow: /apple-touch-icon.png
+Allow: /favicon.ico
+Allow: /favicon.svg
+
+Sitemap: https://dfd.methnidu.dpdns.org/sitemap.xml

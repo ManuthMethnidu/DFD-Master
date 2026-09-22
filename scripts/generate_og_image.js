@@ -221,19 +221,33 @@ async function run() {
   }
 
   const svgBuffer = Buffer.from(svg);
-  await sharp(svgBuffer)
-    .png({ quality: 100 })
+  // Generate 24-bit truecolor sRGB PNG without palette reduction for max compatibility with Facebook/Discord/WhatsApp
+  await sharp(svgBuffer, { density: 150 })
+    .resize(width, height)
+    .png({ palette: false, quality: 100, compressionLevel: 7 })
     .toFile(path.join(publicDir, 'og.png'));
 
-  // Also write to dist/og.png if dist exists
+  // Also generate high quality JPEG version
+  await sharp(svgBuffer, { density: 150 })
+    .resize(width, height)
+    .jpeg({ quality: 92, mozjpeg: true })
+    .toFile(path.join(publicDir, 'og.jpg'));
+
+  // Also write to dist if dist exists
   const distDir = path.resolve('dist');
   if (fs.existsSync(distDir)) {
-    await sharp(svgBuffer)
-      .png({ quality: 100 })
+    await sharp(svgBuffer, { density: 150 })
+      .resize(width, height)
+      .png({ palette: false, quality: 100, compressionLevel: 7 })
       .toFile(path.join(distDir, 'og.png'));
+
+    await sharp(svgBuffer, { density: 150 })
+      .resize(width, height)
+      .jpeg({ quality: 92, mozjpeg: true })
+      .toFile(path.join(distDir, 'og.jpg'));
   }
 
-  console.log('Successfully generated public/og.png and dist/og.png');
+  console.log('Successfully generated public/og.png, public/og.jpg, and dist copies');
 }
 
 run().catch(err => {

@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 
 const Layout = ({ title, children }: { title: string, children: React.ReactNode }) => (
-  <div className="h-screen bg-canvas text-ink flex flex-col font-sans">
+  <div className="min-h-[100dvh] h-[100dvh] bg-canvas text-ink flex flex-col font-sans overflow-hidden">
     <header className="h-16 border-b-2 border-line bg-surface flex items-center px-6 justify-between shrink-0">
       <div className="flex items-center gap-4">
         <Link to="/" className="p-2 hover:bg-canvas transition-colors border-2 border-transparent hover:border-line flex items-center justify-center">
@@ -14,7 +14,7 @@ const Layout = ({ title, children }: { title: string, children: React.ReactNode 
       </div>
       <ThemeToggle />
     </header>
-    <main className="flex-1 w-full max-w-3xl mx-auto p-8 md:p-12 overflow-y-auto">
+    <main className="flex-1 w-full max-w-3xl mx-auto p-6 md:p-12 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6rem)' }}>
       <div className="flex flex-col gap-4 pb-20">
         {children}
       </div>

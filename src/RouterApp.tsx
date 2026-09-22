@@ -144,24 +144,26 @@ function Profile({ user }: { user: any }) {
   if (!profile) return <div className="p-8 text-center font-mono">Loading profile...</div>;
 
   return (
-    <div className="h-screen overflow-y-auto bg-canvas text-ink p-8 md:p-16 relative">
-      <div className="absolute top-4 right-4"><ThemeToggle /></div>
+    <div className="min-h-screen min-h-[100dvh] overflow-y-auto bg-canvas text-ink px-3 py-4 sm:p-8 md:p-16 pb-28">
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-start mb-12">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest hover:bg-accent hover:text-on-accent border-2 border-transparent hover:border-line px-3 py-1.5 transition-colors">
-            <ArrowLeft size={16} /> Back to Simulator
+        <div className="flex justify-between items-center mb-6 sm:mb-12 gap-3">
+          <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-widest hover:bg-accent hover:text-on-accent border-2 border-line bg-surface px-3 py-1.5 transition-colors shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]">
+            <ArrowLeft size={16} /> Back
           </Link>
-          <button onClick={handleLogout} className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-ink hover:bg-ink hover:text-canvas px-3 py-1.5 transition-colors border-2 border-transparent hover:border-ink">
-            <LogOut size={16} /> Sign Out
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button onClick={handleLogout} className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-widest text-ink hover:bg-ink hover:text-canvas px-3 py-1.5 transition-colors border-2 border-line bg-surface shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]">
+              <LogOut size={16} /> <span className="hidden xs:inline">Sign Out</span>
+            </button>
+          </div>
         </div>
         
-        <div className="bg-surface border-4 border-line p-8 md:p-12 shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)] relative">
-          <div className="absolute top-0 right-0 p-6 opacity-10 pointer-events-none">
-            <User size={120} />
+        <div className="bg-surface border-2 sm:border-4 border-line p-5 sm:p-8 md:p-12 shadow-[6px_6px_0px_0px_rgba(var(--shadow-rgb),1)] sm:shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)] relative">
+          <div className="absolute top-0 right-0 p-4 sm:p-6 opacity-10 pointer-events-none">
+            <User className="w-16 h-16 sm:w-28 sm:h-28" />
           </div>
-          <h1 className="text-5xl md:text-5xl font-serif font-black italic mb-2 relative z-10">{profile.displayName}</h1>
-          <p className="text-base font-mono text-ink uppercase tracking-widest mb-12 relative z-10">{profile.email}</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif font-black italic mb-1 sm:mb-2 relative z-10 break-words">{profile.displayName}</h1>
+          <p className="text-xs sm:text-base font-mono text-ink uppercase tracking-wider sm:tracking-widest mb-8 sm:mb-12 relative z-10 break-all">{profile.email}</p>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
             <div>
@@ -248,99 +250,142 @@ function Leaderboard() {
   };
 
   return (
-    <div className="h-screen overflow-y-auto bg-canvas text-ink p-8 md:p-16 relative">
-      <div className="absolute top-4 right-4"><ThemeToggle /></div>
+    <div className="min-h-screen min-h-[100dvh] overflow-y-auto bg-canvas text-ink px-3 py-4 sm:p-8 md:p-16 pb-28">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-12 flex items-center justify-between">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest hover:bg-accent hover:text-on-accent border-2 border-transparent hover:border-line px-3 py-1.5 transition-colors">
-            <ArrowLeft size={16} /> Back to Simulator
-          </Link>
-          <div className="flex gap-2">
-            <button onClick={() => setType('desktop')} className={`text-sm font-bold uppercase tracking-widest px-3 py-1.5 transition-colors border-2 ${type === 'desktop' ? 'bg-ink text-canvas border-ink' : 'bg-surface border-line text-ink hover:bg-canvas'}`}>Desktop</button>
-            <button onClick={() => setType('mobile')} className={`text-sm font-bold uppercase tracking-widest px-3 py-1.5 transition-colors border-2 ${type === 'mobile' ? 'bg-ink text-canvas border-ink' : 'bg-surface border-line text-ink hover:bg-canvas'}`}>Mobile MCQ</button>
+        {/* Navigation & Controls Bar */}
+        <div className="mb-6 sm:mb-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center justify-between w-full sm:w-auto">
+            <Link to="/" className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-widest hover:bg-accent hover:text-on-accent border-2 border-line bg-surface px-3 py-1.5 transition-colors shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]">
+              <ArrowLeft size={16} /> Back
+            </Link>
+            <div className="flex items-center gap-2 sm:hidden">
+              <button onClick={() => setShowInfo(true)} className="p-1.5 border-2 border-line bg-surface text-ink hover:bg-canvas transition-colors" title="Marking Rules">
+                <Info size={16} />
+              </button>
+              <ThemeToggle />
+            </div>
           </div>
-          <button onClick={() => setShowInfo(true)} className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest bg-surface border-2 border-line px-3 py-1.5 hover:bg-canvas transition-colors hidden sm:flex">
-            <Info size={16} /> Marking
-          </button>
+          
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <div className="flex gap-1.5 flex-1 sm:flex-initial">
+              <button onClick={() => setType('desktop')} className={`flex-1 sm:flex-initial text-xs sm:text-sm font-bold uppercase tracking-widest px-3 py-1.5 transition-colors border-2 ${type === 'desktop' ? 'bg-ink text-canvas border-ink shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]' : 'bg-surface border-line text-ink hover:bg-canvas'}`}>Desktop</button>
+              <button onClick={() => setType('mobile')} className={`flex-1 sm:flex-initial text-xs sm:text-sm font-bold uppercase tracking-widest px-3 py-1.5 transition-colors border-2 ${type === 'mobile' ? 'bg-ink text-canvas border-ink shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]' : 'bg-surface border-line text-ink hover:bg-canvas'}`}>Mobile MCQ</button>
+            </div>
+            <div className="hidden sm:flex items-center gap-2">
+              <button onClick={() => setShowInfo(true)} className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest bg-surface border-2 border-line px-3 py-1.5 hover:bg-canvas transition-colors">
+                <Info size={16} /> Marking
+              </button>
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
         
-        <div className="bg-surface border-4 border-line p-8 md:p-12 shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)]">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 border-b-4 border-line pb-6">
-            <div className="flex items-center gap-4">
-              <Trophy size={48} className="text-ink shrink-0" />
+        {/* Main Card */}
+        <div className="bg-surface border-2 sm:border-4 border-line p-4 sm:p-8 md:p-12 shadow-[6px_6px_0px_0px_rgba(var(--shadow-rgb),1)] sm:shadow-[16px_16px_0px_0px_rgba(var(--shadow-rgb),1)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8 border-b-2 sm:border-b-4 border-line pb-4 sm:pb-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <Trophy className="text-ink shrink-0 w-8 h-8 sm:w-12 sm:h-12" />
               <div>
-                <h1 className="text-4xl md:text-5xl font-serif font-black italic">Hall of Fame</h1>
-                <p className="text-base font-mono text-ink uppercase tracking-widest mt-1">Top 10 {type === 'desktop' ? 'DFD Masters' : 'Mobile Analysts'}</p>
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-serif font-black italic">Hall of Fame</h1>
+                <p className="text-xs sm:text-base font-mono text-ink uppercase tracking-wider sm:tracking-widest mt-0.5">Top 10 {type === 'desktop' ? 'DFD Masters' : 'Mobile Analysts'}</p>
               </div>
             </div>
 
             {/* Live Database Connection Status Pill */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-start sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
               <div 
-                className={`flex items-center gap-2 px-3 py-2 border-2 text-xs font-mono font-bold uppercase tracking-wider ${
+                className={`flex items-center gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 border-2 text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider ${
                   dbStatus?.isConnected 
-                    ? 'bg-canvas text-ink border-line shadow-[3px_3px_0px_0px_rgba(var(--shadow-rgb),1)]' 
+                    ? 'bg-canvas text-ink border-line shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]' 
                     : 'bg-surface text-ink border-line border-dashed'
                 }`}
                 title={dbStatus?.detail || ''}
               >
-                <span className={`inline-block w-2.5 h-2.5 rounded-full shrink-0 ${dbStatus?.isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                <span className="truncate max-w-[200px]">
+                <span className={`inline-block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 ${dbStatus?.isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                <span className="truncate max-w-[160px] sm:max-w-[200px]">
                   {dbStatus ? dbStatus.label : 'Checking DB...'}
                 </span>
               </div>
               <button 
                 onClick={refreshDbStatus} 
                 disabled={isCheckingDb}
-                className="p-2 border-2 border-line bg-surface hover:bg-canvas text-ink transition-colors disabled:opacity-50"
+                className="p-1.5 sm:p-2 border-2 border-line bg-surface hover:bg-canvas text-ink transition-colors disabled:opacity-50 shrink-0"
                 title="Ping & refresh database connection"
               >
-                <RefreshCw size={14} className={isCheckingDb ? 'animate-spin' : ''} />
+                <RefreshCw size={13} className={isCheckingDb ? 'animate-spin' : ''} />
               </button>
             </div>
           </div>
 
           {/* Context Banner */}
           {!dbStatus?.isConnected && (
-            <div className="mb-6 p-4 bg-canvas border-2 border-line text-xs font-mono flex items-start gap-3">
-              <Database size={16} className="text-ink shrink-0 mt-0.5" />
-              <div className="leading-relaxed">
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-canvas border-2 border-line text-xs font-mono flex items-start gap-2.5 sm:gap-3">
+              <Database size={15} className="text-ink shrink-0 mt-0.5" />
+              <div className="leading-relaxed text-[11px] sm:text-xs">
                 <span className="font-bold uppercase tracking-wider block mb-0.5">Database Status: Offline / Local Mode</span>
-                <span>The leaderboard is displaying scores earned on this device. Live global rankings across all students require a live cloud database connection.</span>
+                <span>Displaying scores earned on this device. Live global rankings require a live cloud connection.</span>
               </div>
             </div>
           )}
           
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {leaders.length > 0 ? (
               leaders.map((leader, idx) => (
-                <div key={leader.uid || `leader-${idx}`} className={`flex items-center justify-between p-4 md:p-6 border-2 border-line ${idx === 0 ? 'bg-surface border-4 font-bold shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)] -translate-y-1 -translate-x-1' : 'bg-canvas'}`}>
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-8">
-                    <span className="text-3xl md:text-4xl font-serif font-black italic text-muted">#{idx + 1}</span>
-                    <div className="flex items-center gap-4">
+                <div 
+                  key={leader.uid || `leader-${idx}`} 
+                  className={`p-3 sm:p-5 md:p-6 border-2 border-line transition-all ${
+                    idx === 0 
+                      ? 'bg-surface border-2 sm:border-4 font-bold shadow-[4px_4px_0px_0px_rgba(var(--shadow-rgb),1)] sm:shadow-[8px_8px_0px_0px_rgba(var(--shadow-rgb),1)]' 
+                      : idx === 1 
+                        ? 'bg-canvas shadow-[2px_2px_0px_0px_rgba(var(--shadow-rgb),1)]'
+                        : 'bg-canvas'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3 sm:gap-6">
+                    {/* Left: Rank, Avatar, Details */}
+                    <div className="flex items-center gap-2.5 sm:gap-4 min-w-0 flex-1">
+                      <div className="w-7 sm:w-10 shrink-0 text-center">
+                        <span className={`font-serif font-black italic ${
+                          idx === 0 ? 'text-2xl sm:text-4xl text-accent' : idx === 1 ? 'text-xl sm:text-3xl text-ink' : idx === 2 ? 'text-lg sm:text-3xl text-ink/80' : 'text-base sm:text-2xl text-muted'
+                        }`}>
+                          #{idx + 1}
+                        </span>
+                      </div>
+
                       {leader.photoURL ? (
-                        <img src={leader.photoURL} alt={leader.displayName} className="w-10 h-10 border-2 border-line rounded-none" />
+                        <img src={leader.photoURL} alt={leader.displayName} className="w-8 h-8 sm:w-11 sm:h-11 border-2 border-line rounded-none shrink-0 object-cover" />
                       ) : (
-                        <div className="w-10 h-10 bg-canvas border-2 border-line flex items-center justify-center">
-                          <User size={20} className="text-muted" />
+                        <div className="w-8 h-8 sm:w-11 sm:h-11 bg-surface border-2 border-line flex items-center justify-center shrink-0">
+                          <User size={16} className="text-muted" />
                         </div>
                       )}
-                      <div>
-                        <div className="font-bold text-xl leading-tight uppercase tracking-wide">{leader.displayName}</div>
-                        <div className={`text-sm font-mono mt-1 px-2 py-0.5 border inline-block uppercase tracking-widest ${getRankColor(type === 'mobile' ? (leader.totalMobileScore || 0) : (leader.totalScore || 0))}`}>
-                          {getRank(type === 'mobile' ? (leader.totalMobileScore || 0) : (leader.totalScore || 0))}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-sm sm:text-base md:text-xl leading-snug uppercase tracking-wide truncate">
+                          {leader.displayName || 'Anonymous Analyst'}
+                        </div>
+                        <div className="mt-0.5 sm:mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-[9px] sm:text-xs font-mono px-1.5 py-0.5 border inline-block uppercase tracking-wider ${getRankColor(type === 'mobile' ? (leader.totalMobileScore || 0) : (leader.totalScore || 0))}`}>
+                            {getRank(type === 'mobile' ? (leader.totalMobileScore || 0) : (leader.totalScore || 0))}
+                          </span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-4xl md:text-5xl font-serif font-black italic">{type === 'mobile' ? (leader.totalMobileScore || 0) : (leader.totalScore || 0)}</div>
-                    <div className="text-sm font-bold uppercase tracking-widest text-muted">Points</div>
+
+                    {/* Right: Score */}
+                    <div className="text-right shrink-0 pl-2">
+                      <div className="text-xl sm:text-4xl md:text-5xl font-serif font-black italic leading-none">
+                        {type === 'mobile' ? (leader.totalMobileScore || 0) : (leader.totalScore || 0)}
+                      </div>
+                      <div className="text-[9px] sm:text-xs font-bold uppercase tracking-widest text-muted mt-0.5">
+                        Points
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="text-center p-12 border-2 border-line border-dashed text-muted font-mono uppercase tracking-widest">
+              <div className="text-center p-8 sm:p-12 border-2 border-line border-dashed text-muted font-mono uppercase tracking-wider sm:tracking-widest text-xs sm:text-sm">
                 No scores recorded yet. Complete diagrams or questions to earn a spot on the Hall of Fame!
               </div>
             )}

@@ -38,17 +38,16 @@ const sanitizedProjectId = typeof rawProjectId === 'string' ? rawProjectId.trim(
 const rawAuthDomain = localConfig?.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
 let sanitizedAuthDomain = sanitizeDomain(rawAuthDomain);
 
-// Updated override logic: Only fall back to firebaseapp.com for local development/localhost
+// If authDomain is not provided, or was mistakenly set to the website's frontend domain (dfd.methnidu.dpdns.org),
+// fall back to the real Firebase auth handler domain: <projectId>.firebaseapp.com
 if (
   sanitizedProjectId &&
   (!sanitizedAuthDomain ||
+    sanitizedAuthDomain === 'dfd.methnidu.dpdns.org' ||
     sanitizedAuthDomain === 'localhost' ||
-    (typeof window !== 'undefined' && window.location.hostname === 'localhost'))
+    (typeof window !== 'undefined' && sanitizedAuthDomain === window.location.hostname))
 ) {
   sanitizedAuthDomain = `${sanitizedProjectId}.firebaseapp.com`;
-} else if (!sanitizedAuthDomain && typeof window !== 'undefined') {
-  // Automatically use the current window hostname (your custom domain) if no explicit authDomain is set
-  sanitizedAuthDomain = window.location.hostname;
 }
 
 export const firebaseConfig = localConfig

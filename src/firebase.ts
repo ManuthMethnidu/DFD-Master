@@ -23,17 +23,43 @@ export const isFirebaseConfigured: boolean = Boolean(
   !rawApiKey.includes('YOUR_')
 );
 
-const customAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'dfd.methnidu.dpdns.org';
+const sanitizeDomain = (domain?: string | null): string | undefined => {
+  if (!domain || typeof domain !== 'string') return undefined;
+  const cleaned = domain
+    .trim()
+    .replace(/^https?:\/\//i, '') // Strip https:// or http:// if accidentally entered
+    .replace(/\/+$/, ''); // Strip trailing slashes
+  return cleaned.length > 0 ? cleaned : undefined;
+};
+
+const rawProjectId = localConfig?.projectId || import.meta.env.VITE_FIREBASE_PROJECT_ID;
+const sanitizedProjectId = typeof rawProjectId === 'string' ? rawProjectId.trim() : undefined;
+
+const rawAuthDomain = localConfig?.authDomain || import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+let sanitizedAuthDomain = sanitizeDomain(rawAuthDomain);
+
+// If authDomain is not provided, or was mistakenly set to the website's frontend domain (dfd.methnidu.dpdns.org),
+// fall back to the real Firebase auth handler domain: <projectId>.firebaseapp.com
+if (
+  sanitizedProjectId &&
+  (!sanitizedAuthDomain ||
+    sanitizedAuthDomain === 'dfd.methnidu.dpdns.org' ||
+    sanitizedAuthDomain === 'localhost' ||
+    (typeof window !== 'undefined' && sanitizedAuthDomain === window.location.hostname))
+) {
+  sanitizedAuthDomain = `${sanitizedProjectId}.firebaseapp.com`;
+}
 
 export const firebaseConfig = localConfig
   ? {
       ...localConfig,
-      authDomain: customAuthDomain,
+      authDomain: sanitizedAuthDomain || sanitizeDomain(localConfig.authDomain),
+      projectId: sanitizedProjectId,
     }
   : {
       apiKey: rawApiKey,
-      authDomain: customAuthDomain,
-      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+      authDomain: sanitizedAuthDomain,
+      projectId: sanitizedProjectId,
       storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
       messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
       appId: import.meta.env.VITE_FIREBASE_APP_ID,

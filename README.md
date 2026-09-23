@@ -40,13 +40,17 @@ To run this project locally or deploy it to a service like Netlify, you must pro
 
 ```env
 VITE_FIREBASE_API_KEY=YOUR_API_KEY
-VITE_FIREBASE_AUTH_DOMAIN=dfd.methnidu.dpdns.org
+VITE_FIREBASE_AUTH_DOMAIN=YOUR_PROJECT_ID.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
 VITE_FIREBASE_STORAGE_BUCKET=YOUR_PROJECT_ID.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=YOUR_MESSAGING_SENDER_ID
 VITE_FIREBASE_APP_ID=YOUR_APP_ID
 VITE_FIREBASE_DATABASE_ID=(default)
 ```
+
+> **Important notes for Firebase Auth:**
+> - `VITE_FIREBASE_AUTH_DOMAIN` must be `YOUR_PROJECT_ID.firebaseapp.com` (do **not** prepend `https://` or include trailing slashes).
+> - In **Firebase Console → Authentication → Settings → Authorized domains**, add your custom domain (`dfd.methnidu.dpdns.org`) and your Netlify domain to authorize Google Sign-In popups.
 
 **Netlify Deployment:**
 When deploying to Netlify, go to **Site configuration → Environment variables** and add all the `VITE_FIREBASE_*` variables listed above so the build can resolve your credentials securely!
